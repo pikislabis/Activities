@@ -90,7 +90,7 @@ class User < ActiveRecord::Base
 	end
 	
 	def password_required?
-  	new_record? ? (hashed_password.blank? || !password.blank?) : !password.blank?
+  	new_record? ? (crypted_password.blank? || !password.blank?) : !password.blank?
   end
   	
   def self.pasar_a_iso(texto)
