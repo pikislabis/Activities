@@ -1,0 +1,72 @@
+<% content_for (:activity_nav) do %>
+	<ul>
+			<li><%= link_to 'Usuarios', :action => 'list' %></li>
+			<li><%= link_to 'Proyectos', :controller => 'projects', :action => 'index' %></li>
+			<li><%= link_to 'Actividades', :controller => 'activities', :action => 'index' %></li>
+			<% if User.find(session[:user_id]).has_role?('admin') %>
+				<li class="selected"><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
+			<% end %>
+	</ul>
+<% end %>
+
+<% content_for (:action_nav) do %>
+	<ul>
+			<li class="selected2"><%= link_to 'Administradores', :action => 'permissions' %></li>
+			<li><%= link_to 'Jefes de proyecto', :action => 'permissions_jp' %></li>
+	</ul>
+<% end %>
+
+<div class="top">
+	<h3>Administradores</h3>	
+</div>
+
+<% @users = User.find(:all) %>
+
+<ul id="users_list2">
+	<% for user in @users %>
+		<% if user.has_role?('admin') %>
+			<li>
+				<label>
+					<%= link_to user.long_name, :action => 'show', :id => user.id %>
+					<span class="act_desc">
+						<%= link_to image_tag('/images/delete.gif'), {:controller => 'users', 
+																													:action => 'delete_role', 
+																													:id => user.id, :id2 => 1},
+																												:confirm => '¿Está seguro?' %>
+					</span>
+					<div class="user_name">
+						<%= user.name %>
+					</div>
+				</label>
+			</li>
+		<% end %>
+	<% end %>
+	<li>
+		<span class="hide_view hide_view2">
+			<%= link_to_function('▶Modificar', "Element.toggle('mod_admin')") %>
+		</span>
+	</li>
+</ul>	
+<div id="mod_admin" class="mod_all mod_sec" style="display : none;">
+	<% form_for :role, :url => {:action => "mod_all", :id => 1} do |f| %>
+		<p class="njp">
+			<label>Nuevo administrador</label>
+		</p>
+		<p class="njp2">
+			<% @users_2 = Array.new %>
+			<% for user in User.find(:all) %>
+				<% if !user.has_role?("admin") %>
+					<% @users_2 << user %>
+				<% end %>
+			<% end %>
+			<%= f.select :user_id,
+				@users_2.collect{|user| [user.name, user.id]},
+				:prompt => "Seleccione un usuario",
+				:selected => nil
+			%>
+		</p>	
+		<p class="btns">
+			<%= f.submit "Añadir" %>
+		</p>
+	<% end %>
+</div>

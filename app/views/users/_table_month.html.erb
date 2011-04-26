@@ -1,0 +1,41 @@
+<table class="table_month">
+	<tr class="table_title">
+		<td>Proyecto</td>
+		<td>Actividades</td>
+		<td>Horas</td> 
+	</tr>
+		<% @total2 = 0 %>
+		<% for x in (0..@project.activities.count - 1) %>
+			<tr class="table_row">
+				<% if x == 0 %>
+					<td>
+						<%= @project.name %>
+					</td>
+				<% else %>
+					<td></td>
+				<% end %>
+				
+				<td>
+					<%= @project.activities[x].name %>
+				</td>
+				<% @total = 0 %>
+				<% for y in (0..Time.days_in_month(@current_month.to_i + 1, @current_year))%>
+					<% @task = Task.find(:first, :conditions => {:user_id => @user.id,	
+																:activity_id => @project.activities[x].id,
+																:date =>  Date.new(@current_year.to_i, @current_month.to_i + 1, 1) + y})
+					%>
+					<% if !(@task.nil? or @task.hours.nil?) %>
+						<% @total += @task.hours %>
+						<% @total2 += @task.hours %>
+					<% end %>
+				<%end%>	
+				<td class="total">
+					<%= @total %>
+				</td>
+			</tr>
+		<% end %>
+		<tr class="total">
+			<td colspan="2"></td>
+			<td class="total3"><%= @total2 %></td>
+		</tr>
+</table>

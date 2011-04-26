@@ -1,0 +1,55 @@
+<link rel="SHORTCUT ICON" href="/images/agaex-icono.ico">
+<title>Agaex</title>
+<%= stylesheet_link_tag "act", :media => "all" %>
+<%= javascript_include_tag :all %>
+<%= calendar_date_select_includes "blue" %>
+<div id="header">
+	<ul id="sec-nav">
+		<li><%= link_to 'Mi Cuenta', :controller => 'users',:action => 'edit', :id => session[:user_id] %></li>
+		<li><%= link_to 'Desconectar', :controller => :users, :action => 'logout' %></li>
+	</ul>
+	<h1><%= link_to User.find(session[:user_id]).name, :controller => :users, :action => 'index' %></h1>
+	<div id="nav" class="clear">
+		<ul>
+			<li><%= link_to 'Actividades', :controller => "users", :action => 'edit_tasks' %></li>
+			<li><%= link_to 'Gastos', :controller => "users", :action => 'view_spendings', :id => session[:user_id] %></li>
+			<li><%= link_to 'Alertas', :controller => "users", :action => 'view_alerts', :id => session[:user_id]%></li>
+			<li><%= link_to 'Incidencias', :controller => "incidences", :action => 'index' %></li>
+			<% if 	User.find(session[:user_id]).has_role?("admin") or 
+					User.find(session[:user_id]).has_role?("super_user") 
+			%>
+				<li id="admin"><%= link_to 'Administrador', :controller => "users", :action => 'admin_sec' %></li>
+			<% end %>
+		</ul>
+	</div>
+</div>
+<div id="content">
+	<div id="main">
+		<div id="activity_nav">
+			<%= yield :activity_nav %>
+		</div>
+		<div id="action_nav">
+			<%= yield :action_nav %>
+		</div>
+		<div id="flashes">
+			<% if flash[:error] -%>
+    			<div id="flash-errors"><%= flash[:error] %></div>
+      		<% end -%>
+      		<% if flash[:notice] -%>
+    			<div id="flash-notice"><%= flash[:notice] %></div>
+      		<% end -%>
+		</div>
+		<div id="main-content">
+			<%= yield :layout %>
+		</div>
+	</div>
+	<div id="sbar">
+		<div class="block_incidences">
+			<% if User.find(session[:user_id]).has_role?('admin') %>
+				<%= render :partial => 'incidences/sbar' %>
+			<% else %>
+				<%= render :partial => 'incidences/sbar_noAdmin' %>
+			<% end %>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,64 @@
+<% form_for @spending, :url => {:action => "save_spending"} do |f| %>
+	<%= f.error_messages %>
+	<table class="form_setting no_border">	
+
+		<%= f.hidden_field :user_id %>
+		<tr>
+			<th>
+		  	<label for="date">Fecha</label>
+			</th>
+			<td>
+		  	<%= f.text_field :date, :size => 10 %>
+			</td>
+		</tr>
+	
+		<tr>
+		  	<th>
+					<label for="place">Lugar de la actividad</label>
+				</th>
+				<td>
+		  		<%= f.text_field :place %>
+				</td>
+		</tr>
+
+		<tr>
+		  	<th>
+					<label for="kms">Kilometros</label>
+				</th>
+				<td>
+		  		<%= f.text_field :kms, :size => 6 %>
+				</td>
+			</tr>
+
+		<tr>
+		  	<th>
+					<label for="parking">Transporte / Parking</label>
+				</th>
+				<td>
+		  		<%= f.text_field :parking, :size => 6 %>
+				</td>
+			</tr>
+
+		<tr>
+		  	<th>
+					<label for="food">Comidas</label>
+				</th>
+				<td>
+		  		<%= f.text_field :food, :size => 6 %>
+				</td>
+			</tr>
+
+		<tr>
+		  	<th>
+					<label for="represent">Gastos represent.</label>
+				</th>
+				<td>
+		  		<%= f.text_field :represent, :size => 6 %>
+				</td>
+			</tr>
+	</table>
+	<p class="btns">
+		<%= f.submit "Modificar" %>
+	</p>
+
+<% end %>

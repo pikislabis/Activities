@@ -1,0 +1,2 @@
+00 09 * * * cd /home/pbj000/projects/activities/;rake prueba:send_mail
+* * * * * getmail

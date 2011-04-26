@@ -1,0 +1,38 @@
+<% if (@project == "Todos") %>
+	
+	<script type="text/javascript" language="javascript">
+  		new Form.Element.disable('type_view');
+	</script>
+
+	<p class="form_month">
+		<%= session[:current_date].to_date.strftime("%B").capitalize%>, <%= session[:current_date].to_date.year%>
+	</p>
+	
+	<%= render :partial => 'table_tasks', :locals => {:user => @user} %>
+	
+<% else %>
+
+	<% if @project.activities.blank? %> 
+		No hay ninguna actividad para este proyecto.
+	<% else %>
+	
+		<% if session[:t_view] == "Semanal" %>
+	
+			<p class="form_month">
+				<%=@current_date.to_date.strftime("%B").capitalize %>, <%= @current_date.to_date.year %>
+			</p>
+		
+				<%= render :partial => 'table_week' %>
+	
+		<% else %>
+	
+				<p class="form_month">
+					<%=@current_date.to_date.strftime("%B").capitalize %>, <%= @current_date.to_date.year %>
+				</p>
+		
+				<%= render :partial => 'table_month' %>
+				
+		<% end %>
+	<% end %>
+	
+<% end %>

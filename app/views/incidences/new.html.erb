@@ -1,0 +1,60 @@
+<% content_for (:activity_nav) do %>
+	<ul>
+			<li><%= link_to 'Lista', :action => 'index'%></li>
+			<li class="selected"><%= link_to 'Nueva incidencia', :action => 'new'%></li>
+			<li><%= link_to 'Historial', :action => 'all_records' %></li>
+	</ul>
+<% end %>
+
+
+<h1>Nueva incidencia</h1>
+
+<% form_for @incidence,  :html => { :multipart => true } do |f| %>
+  <%= f.error_messages %>
+	<table class="form_setting no_border">
+		<tr>
+			<th>
+				<label for="title">Titulo</label>
+			</th>
+			<td>
+		  	<%= f.text_field :title %>
+			</td>
+		</tr>
+		<tr>
+			<th>
+				<label for="description">Descripcion</label>
+			</th>
+			<td>
+		  	<%= f.text_area :description, :rows => 7 %>
+			</td>
+		</tr>
+		<tr>
+			<th>
+				<label for="type_inc">Tipo</label>
+			</th>
+			<td>
+		  	<%= f.select :type_inc, @type_incidences,
+		        		 		:prompt => "Seleccione",
+		         		 		:selected => nil
+	 			%>
+			</td>
+		</tr>
+		<tr>
+			<th>
+				<label for="attachment">Adjuntar</label>
+			</th>
+			<td>
+				<%= file_field_tag :name %>
+			</td>
+		</tr>
+	
+		<% f.hidden_field :origin %>
+		<% f.hidden_field :user_id %>
+		<% f.hidden_field :state %>
+		<% f.hidden_field :priority %>
+	</table>
+
+  <p class="btns">
+    <%= f.submit "Crear" %>
+  </p>
+<% end %>

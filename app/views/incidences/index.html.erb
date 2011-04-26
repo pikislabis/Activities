@@ -1,0 +1,66 @@
+<% content_for (:activity_nav) do %>
+	<ul>
+		<li class="selected"><%= link_to 'Lista', :action => 'index'%></li>
+		<li><%= link_to 'Nueva incidencia', :action => 'new'%></li>
+		<li><%= link_to 'Historial', :action => 'all_records' %></li>
+	</ul>
+<% end %>
+
+<% content_for (:action_nav) do %>
+	<ul>
+		<li class = <%= @class[4] %>>
+			<%= link_to 'Todas', :action => 'index' %>
+		</li>
+		<li class = <%= @class[0] %> >
+			<%= link_to 'Creadas', :action => 'index', :id => 'creada' %>
+		</li>
+		<li class = <%= @class[1] %> >
+			<%= link_to 'Abiertas', :action => 'index', :id => 'abierta' %>
+		</li>
+		<li class = <%= @class[3] %> >
+			<%= link_to 'Reasignadas', :action => 'index', :id => 'reasignada' %>
+		</li>
+		<li class = <%= @class[2] %> >
+			<%= link_to 'Resueltas', :action => 'index', :id => 'resuelta' %>
+		</li>
+	</ul>
+<% end %>
+
+<% if @incidences.nil? %>
+	<h1>No hay incidencias.</h1>
+<% else %>
+	<ul  class="users_list">
+		<% for incidence in @incidences %>
+			<li>
+				<label>
+					<%= link_to incidence.title, incidence %>
+					<span class="act_desc"><%= link_to image_tag('carpeta2.gif',:height => '22', :width => '20'), "#", :onclick => "Effect.toggle('view_record_'+'#{incidence.id}', 'slide'); return false;" %>
+					</span>
+					<span class="act_desc"><%= link_to image_tag('edit.gif'), "#", 
+									:onclick => "Effect.toggle('edit_inc_'+'#{incidence.id}', 'slide'); return false;" %>
+					</span>
+					<span class="act_desc"><%= link_to image_tag('delete.gif'), incidence, 	
+																																:confirm =>'¿Está seguro?',
+																																:method => :delete %>
+					</span>
+					<br/>
+					<div class="help"><%= truncate(incidence.description, 60) %>
+					</div>
+					<span><%= incidence.created_at.to_date %> <%= incidence.created_at.to_s(:only_time) %></span>
+				</label>
+				<div class="help">
+					<span class="state <%= incidence.state %>">
+						<%= incidence.state %>
+					</span>
+				</div>
+				<div id="view_record_<%= incidence.id %>" class="mod_cuart form_setting2" style="display: none">
+						<%= render :partial => 'records', :locals => {:id => incidence.id} %>
+				</div>
+				<div id="edit_inc_<%= incidence.id %>" class ="mod_cuart form_setting2" style="display: none">
+						<%= render :partial => 'edit', :locals => {:id => incidence.id} %>
+				</div>
+			</li>
+		<% end %>
+	</ul>
+  <%= will_paginate @incidences %>
+<% end %>

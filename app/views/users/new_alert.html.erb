@@ -1,0 +1,45 @@
+<% content_for (:action_nav) do %>
+	<ul>
+			<li class="selected2"><%= link_to 'Nueva alerta', :action => 'new_alert' %></li>
+	</ul>
+<% end %>
+
+<h3>Nueva alerta</h3>
+<div class="course-form">
+	<% form_for @alert, :url => {:action => "save_alert"} do |f| %>
+		<table class="form_setting">
+			<tr>
+				<th>
+					<label for="text">Descripcion</label>
+				</th>
+				<td>
+					<%= f.text_area :text, :rows => 3 %>
+				</td>
+			</tr>
+			<tr>
+				<th>
+					<label for ="date">Fecha</label>
+				</th>
+				<td>
+					<%= f.calendar_date_select :date, 
+											{ :year_range => 0.years.ago..5.years.from_now, :size => 10}
+					%>
+				</td>
+			</tr>
+			<tr>
+				<th>
+					<label for="frequency">Frecuencia</label>
+				</th>
+				<td>
+					<%= f.select :frequency, @frequencies,
+          				 	:prompt => "Seleccione",
+           					:selected => nil
+ 					%>
+				</td>
+			</tr>
+		</table>
+		<p class="btns">
+			<%= f.submit "Añadir" %>
+		</p>
+	<%end%>
+</div>

@@ -1,0 +1,71 @@
+		<table class="table_spend">
+			<tr>
+				<td class="table_title" rowspan="2">Día</td>
+				<td class="table_title" rowspan="2">Lugar de la Actividad</td>
+				<td class="table_title" colspan="2">Vehículo propio</td>
+				<td class="table_title" rowspan="2">Transporte<br/>Parking</td>
+				<td class="table_title" rowspan="2">Comidas</td>
+				<td class="table_title" rowspan="2">Gastos<br/>represent.</td>
+				<td class="table_title" rowspan="2">TOTAL</td>
+			</tr>
+			<tr>
+				<td class="table_title">Kms.</td>
+				<td class="table_title">Importe</td>
+			</tr>
+			<% @total2 = 0 %>
+			<% @total_kms = 0 %>
+			<% @total_parking = 0 %>
+			<% @total_food = 0 %>
+			<% @total_represent = 0 %>
+
+			<% for x in 0..@days_in_month - 1 %>
+				<% @day = @first_day + x %>
+				<% if ((@day.wday != 6) and (@day.wday != 7) and (@day.wday != 0)) %>
+					<% @spend = Spending.find(:first, :conditions => {:user_id => @user.id,
+																		:date => @day }) %>
+					<tr>
+						<td>
+							<%= link_to @day.day, :action => "modify_spending", :id => @user.id, 
+																		:date => @day %>
+						</td>
+					
+					<% if @spend.blank? %>
+						<% for x in 1..7 %>
+							<td></td>
+						<% end %>	
+					<% else %>
+						<% @total = 0 %>
+						<td><%= @spend.place %></td>
+						<td><%= @spend.kms %></td>
+							<% @total_kms += @spend.kms.to_f %>
+						<% if @spend.kms.nil? %>
+							<td></td>
+						<% else %>					
+							<td><%= "%.2f" % (@spend.kms * import.to_f) %></td>
+							<% @total += (@spend.kms * import.to_f) %>
+						<% end %>
+						<td><%= "%.2f" % @spend.parking.to_f %></td>
+							<% @total += @spend.parking.to_f %>
+							<% @total_parking += @spend.parking.to_f %>
+						<td><%= "%.2f" % @spend.food.to_f %></td>
+							<% @total += @spend.food.to_f %>
+							<% @total_food += @spend.food.to_f %>
+						<td><%= "%.2f" % @spend.represent.to_f %></td>
+							<% @total += @spend.represent.to_f %>
+							<% @total_represent += @spend.represent.to_f %>
+						<td><%= "%.2f" % @total %></td>
+							<% @total2 += @total %>
+					<% end %>
+					</tr>
+				<% end %>														
+			<% end %>
+			<tr>
+				<td class="table_title" colspan="2">TOTALES</td>
+				<td class="table_title"><%= "%.2f" % @total_kms %></td>
+				<td class="table_title"><%= "%.2f" % (@total_kms.to_f * import.to_f) %></td>
+				<td class="table_title"><%= "%.2f" % @total_parking %></td>
+				<td class="table_title"><%= "%.2f" % @total_food %></td>
+				<td class="table_title"><%= "%.2f" % @total_represent %></td>
+				<td class="table_title"><%= "%.2f" %  @total2 %></td>
+			</tr>
+		</table>

@@ -1,0 +1,12 @@
+<p class="form_month">
+	<%= @current_date.to_date.strftime("%B").capitalize%>, <%= @current_date.to_date.year %>
+</p>
+<%= render :partial => 'table_spendings', :locals => {:import => @import} %>
+<div id="image_link">
+	<%= link_to ( image_tag("pdf.jpg"), 
+				:action => "pdf_spendings", 
+				:id => session[:user_view], 
+				:date_month => @current_month, 
+				:date_year => @current_year ) 
+	%>
+</div>

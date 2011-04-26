@@ -1,0 +1,54 @@
+<div class="top">
+	<h3><%= @user.name %></h3>
+</div>
+
+<div class="act-form">
+	
+	<% form_tag do %>
+		<table class="form-act">
+			<tr>
+				<th>Seleccione la fecha</th>
+				<td>Desde</td>
+				<td>
+					<%= calendar_date_select_tag :init_date, @init_date, 
+												{:year_range => 5.years.ago..1.years.from_now, :size => 10 }
+					%>
+				</td>
+				<td>Hasta</td>
+				<td>
+					<%= calendar_date_select_tag :finish_date, @finish_date, 
+												{:year_range => 5.years.ago..1.years.from_now, :size => 10 }
+					%>
+				</td>
+			</tr>
+			<tr>
+				<th>Seleccione los proyectos</th>				
+				<td colspan="2">
+					<ul>
+  					<% for project in @projects %>
+    					<li>
+      					<%= check_box_tag "projects_ids[]", project.id %>
+      					<%= project.name %>
+    					</li>
+  					<% end %>
+  				</ul>
+
+					<!--<%= select_tag "project[]", options_from_collection_for_select(@projects, 'id', 'name'), 
+													:multiple => true %>
+					-->
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<%= submit_to_remote 'Ver', 'Ver',
+            			:url => {:controller => 'users', :action => 'modify_custom_view_tasks'},
+            			:update => 'table_tasks' %>
+				</td>
+			</tr>
+		</table>
+	<% end %>
+  		
+	<div id="table_tasks">
+	</div>
+
+</div>

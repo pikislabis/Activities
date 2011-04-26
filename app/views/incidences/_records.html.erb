@@ -1,0 +1,35 @@
+<% @incidence = Incidence.find(id) %>
+<% @historial = @incidence.records %>
+
+<% if @historial.blank? %>
+	<h1>El historial para la incidencia <%= @incidence.id %> está vacio.</h1>
+<% else %>
+	<table class="records">
+	<% for record in @historial %>
+		<tr class="table_title">
+			<td class="date_label">
+				<%= record.created_at.to_date %> <%= record.created_at.to_s(:only_time)%>
+			</td>
+			<td><%= record.text1 %></td>
+			<td><%= User.find(record.user_id).name %></td>
+		</tr>
+		<% if !record.text2.nil? %>
+			<tr>
+				<td  class="text2" colspan = 3>
+					<%= record.text2 %>
+				</td>
+			</tr>
+		<% end %>
+		<tr>
+			<td colspan = 3>
+			<ul class="attachments">
+				<% @attachment = Attachment.find(:all, :conditions => {:record_id => record.id}) %>
+				<% for x in @attachment %>
+					<li class="attachment"> <%= link_to_file x.name_file_name, x.name.url %> </li>
+				<% end %>
+			</ul>
+			</td>
+		</tr>
+	<% end %>
+	</table>
+<% end %>

@@ -1,0 +1,100 @@
+<% if @user == @current_user %>
+
+	<% content_for (:activity_nav) do %>
+		<ul>
+				<li><%= link_to 'Modificar', :action => 'edit_tasks' %></li>
+				<li class="selected"><%= link_to 'Ver', :action => 'view_tasks', :id => @user.id %></li>
+		</ul>
+	<% end %>
+
+<% else %>
+
+	<% content_for (:activity_nav) do %>
+		<ul>
+			<li class="selected"><%= link_to 'Usuarios', :controller => 'users', :action => 'list' %></li>
+			<li><%= link_to 'Proyectos', :controller => 'projects', :action => 'index' %></li>
+			<li><%= link_to 'Actividades', :controller => 'activities', :action => 'index' %></li>
+			<% if @current_user.has_role?('admin') %>
+				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
+			<% end %>
+		</ul>
+	<% end %>
+	
+	<%content_for (:action_nav) do %>
+		<ul>
+			<li><%= link_to 'Perfil', :controller => 'users', :action => 'show', :id => @user.id %></li>
+			<li>
+				<%= link_to 'Proyectos', :controller => 'users', :action => 'edit_proj', :id => @user.id %>
+			</li>
+			<li class="selected2">
+				<%= link_to 'Hoja actividades', :controller => 'users', 
+																				:action => 'view_tasks', :id => @user.id %>
+			</li>
+			<li><%= link_to 'Hoja gastos', :controller => 'users', 
+																		 :action => 'view_spendings', :id => @user.id %></li>
+		</ul>
+	<% end %>
+<% end %>
+
+<div class="top">
+	<h3><%= @user.name %></h3>
+</div>
+
+<div class="act-form">
+	
+	<table class="form-act">
+		<tr>
+			<th>Seleccione la fecha</th>
+			<td>
+				<%= calendar_date_select_tag :current_date, @current_date, 
+											{:year_range => 5.years.ago..1.years.from_now, :size => 10,
+											:onchange => "new Ajax.Updater('table_tasks', 
+											'/users/modify_view_tasks?'+																										$H({current_date:this.calendar_date_select.selected_date}).toQueryString(),
+											{asynchronous:true, evalScripts:true})"}
+				%>
+			</td>
+		</tr>
+		<tr>
+			<th>Seleccione el proyecto</th>
+			<td>
+				<%= select (:proj, :id, @projects.map{|u|[u.name, u.id]}, :selected => @projects[0].name) %>
+			</td>
+  				<%= observe_field :proj_id, :url => {:action => :modify_view_tasks}, 
+  									:update => "table_tasks", :with => "proj" %>
+  		</tr>
+  		<tr>
+  			<th>Seleccione la vista</th>
+  			<td>
+  				<%= select_tag :type_view, options_for_select(@typeView) %>
+  			</td>
+  				<%= observe_field :type_view, :url => {:action => :modify_view_tasks}, 
+  									:update => "table_tasks", :with => "type_view" %>
+  		</tr>
+  	</table>
+  		
+  		<div id="table_tasks">
+			<% if @project.activities.blank? %>	
+				No hay ninguna actividad para este proyecto.
+			<% else %>
+				
+				<% if session[:t_view] == "Semanal" %>
+				
+					<p class="form_month">
+						<%=@current_date.to_date.strftime("%B").capitalize %>, <%= @current_date.to_date.year %>
+					</p>
+					
+					<%= render :partial => 'table_week' %>
+				
+				<% else %>
+				
+					<p class="form_month">
+						<%=@current_date.to_date.strftime("%B").capitalize %>, <%= @current_date.to_date.year %>
+					</p>
+				
+					<% render :partial => 'table_month' %>
+							
+				<% end %>
+			
+			<% end %>
+		</div>
+</div>

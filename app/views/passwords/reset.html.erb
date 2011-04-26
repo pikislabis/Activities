@@ -1,0 +1,42 @@
+<link rel="SHORTCUT ICON" href="/images/agaex-icono.ico">
+<title>Agaex</title>
+<%= stylesheet_link_tag "inicio", :media => "all" %>
+<div id=header>
+	<h1 id="logo">
+		<%=link_to "Agaex", "http://www.agaex.com"%>
+	</h1>
+</div>
+<div id=content>
+	<div id="signin">
+		<h3>Introduzca los datos</h3>
+		<div id="flashes">
+			<% if flash[:error] -%>
+    			<div id="flash-errors"><%= flash[:error] %></div>
+      		<% end -%>
+		</div>	
+		<div class="box-content">
+			<% form_for :user, :url => { :action => 'update_after_forgetting' } do |f| %>
+				<dl>
+					<div id="login-region">
+						<dt>
+							<label for="password">Contraseña</label>
+						</dt>
+						<dd>
+							<%= f.password_field :password %>
+						</dd>
+						<dt>
+							<label for="email_corp">Confirmar contraseña</label>
+						</dt>
+						<dd>
+							<%= f.password_field :password_confirmation %>
+						</dd>
+						<%= hidden_field_tag :reset_code, params[:reset_code] %>
+					</div>
+				</dl>
+				<p class="btns">
+					<%= submit_tag "Enviar" %>
+				</p>
+			<% end %>
+		</div>
+	</div>
+</div>

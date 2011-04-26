@@ -1,0 +1,16 @@
+<h3>
+	<% @user = User.find(session[:user_id]) %>
+	<% @incidences = Incidence.find(:all, :conditions => {:state => "reasignada",
+																												:assigned_to => @user.id}) %>
+	<% if @incidences.length != 0 %>
+		Hay un total de <%= @incidences.length %> incidencias asignadas a su perfil.
+ 	<% end %>
+</h3>
+<ul id="incidences" class="list_inc">
+	<% for x in @incidences %>
+		<li class="incid">
+			<span class="number number_yellow"><%= at_array(x,@incidences) %></span>
+			<%= link_to x.title, x %>
+		</li>
+	<% end %>
+</ul>

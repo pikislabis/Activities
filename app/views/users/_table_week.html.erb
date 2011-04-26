@@ -1,0 +1,53 @@
+<table class="table_week">
+	<tr class="table_title">
+		<td>Proyecto</td>
+		<td>Actividades</td>
+		<td>Lunes <%= @days[0]%></td>
+		<td>Martes <%= @days[1]%></td>
+		<td>Miercoles <%= @days[2]%></td>
+		<td>Jueves <%= @days[3]%></td>
+		<td>Viernes <%= @days[4]%></td>
+		<td>Total</td>
+	</tr>
+		<% @super_total = 0 %>
+		<% for x in (0..@project.activities.count - 1) %>
+			<tr>
+				<!-- Solo indicamos el nombre del proyecto en la primera fila -->
+				<% if x == 0 %>
+					<td>
+						<%= @project.name %>
+					</td>
+				<% else %>
+					<td></td>
+				<% end %>
+								
+				<td>
+					<%= @project.activities[x].name %>
+				</td>	
+			
+			<% @total = 0 %>					
+				<% for y in (0..4)%>
+					<% @task = Task.find(:first, :conditions => {:user_id => @user.id,	
+												:activity_id => @project.activities[x].id,
+												:date =>  @current_date.to_date.monday + y})
+					%>
+					<td>
+						<% if (@task.nil? or @task.hours.nil?) %>
+							0
+						<% else %>
+							<%= @task.hours %>
+							<%  @total += @task.hours %>
+							<%  @super_total += @task.hours %>
+						<% end %>
+					</td>
+				<% end %>
+				<td class="total">
+					<%= @total %>
+				</td>			
+			</tr>
+		<% end %>
+		<tr class="total">
+			<td colspan="7"></td>
+			<td class="total3"><%= @super_total %></td>
+		</tr>
+</table>

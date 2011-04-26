@@ -1,0 +1,48 @@
+<% form_for(@incidence) do |f| %>
+	<table class="form_setting">
+		<tr>
+			<th>
+				<label for="title">Titulo</label>
+			</th>
+			<td colspan = 5>
+				<%= @incidence.title %>
+			</td>
+		</tr>
+		<tr>
+			<th>
+				<label for="description">Descripcion</label>
+			</th>
+			<td colspan = 4>
+				<%= f.text_area :description, :rows => 10 %>
+			</td>
+		</tr>
+		<tr>
+			<th>
+				<label for="type_inc">Tipo</label>
+			</th>
+			<td>
+				<%= f.select :type_inc, @type_incidences,
+			      		 :prompt => "Seleccione",
+			       		 :selected => @incidence.type_inc
+	 			%>	
+			</td>
+			<th>
+				<label for="priority">Prioridad</label>
+			</th>
+			<td>
+				<% if User.find(session[:user_id]).has_role?('admin') %>
+					<%= f.select 	:priority, @type_priorities,
+			      		 				:prompt => "Seleccione",
+			       		 				:selected => @incidence.priority
+	 				%>
+				<% else %>
+					<%= @incidence.priority %>
+				<% end %>
+			</td>
+			
+		</tr>
+	</table>
+	<p class="btns">
+		<%= f.submit "Guardar" %>
+	</p>
+<% end %>

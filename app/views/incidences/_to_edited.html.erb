@@ -1,0 +1,35 @@
+<% form_tag ({:action => "to_edited", :id => incidence.id, :type => type}, :multipart => true) do %>
+	<table class="form_setting">
+		<tr>
+			<th>
+				<label for="text">Comentario</label>
+			</th>
+			<td>
+				<%= text_area_tag :comment, nil, :rows => 5 %>
+			</td>
+		</tr>
+		<% if ((type == 'reasignada') and (@user.has_role?('admin'))) %>
+			<tr>
+				<th>
+					<label for="assigned">Asignar a</label>
+				</th>
+				<td>
+					<%= select :incidence, :assigned_to, @users.collect {|u| [u.name, u.id]},
+																					{:prompt => "Seleccione un usuario",
+																					:selected => nil} %>
+				</td>
+			</tr>
+		<% end %>
+		<tr>
+			<th>
+				<label for="adjunto">Adjuntar archivo</label>
+			</th>
+			<td>
+				<%= file_field_tag :name %>
+			</td>
+		</tr>
+	</table>
+	<p class="btns">
+		<%= submit_tag @incidence_types[type].capitalize %>
+	</p>
+<% end %>

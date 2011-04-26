@@ -1,0 +1,168 @@
+<% content_for (:activity_nav) do %>
+	<ul>
+			<li><%= link_to 'Nueva incidencia', :action => 'new'%></li>
+			<li><%= link_to 'Historial', :action => 'all_records' %></li>
+	</ul>
+<% end %>
+
+
+<% content_for :action_nav do %>
+	<ul>
+		<li>
+			<%= link_to 'Editar', "#", :onclick => "Effect.toggle('edit_inc', 'slide'); return false" %> 
+		</li>
+
+		<% if @user.has_role?('admin') %>
+			<% if @incidence.state != 'abierta' %>
+				<li>
+					<%= link_to 'Abrir', "#", :onclick => "Effect.toggle('to_opened_inc', 'slide'); return false" %>
+				</li>
+			<% end %>
+			<% if @incidence.state != 'resuelta' %>
+				<li>
+					<%= link_to 'Resolver', "#", :onclick => "Effect.toggle('to_resolved_inc', 'slide'); return false" %>
+				</li>
+			<% end %>
+			<li>
+				<%= link_to 'Reasignar', "#", :onclick => "Effect.toggle('to_reassigned_inc', 'slide'); return false" %>
+			</li>
+		<% end %>
+
+		<% if ((!@user.has_role?('admin')) and (@incidence.assigned_to == @user.id)) %>
+			<li>
+				<%= link_to 'Reasignar', "#", :onclick => "Effect.toggle('to_reassigned_inc', 'slide'); return false" %>
+			</li>
+		<% end %>
+		<% if ((@user.has_role?('admin')) or (@incidence.assigned_to == @user.id)) %>
+			<li>
+				<%= link_to 'Añadir adjunto', "#", :onclick => "Effect.toggle('include_attachment', 'slide');
+																												return false;" %>
+			</li>
+		<% end %>
+    <li>
+				<%= link_to 'Ver Historial', "#", :onclick => "Effect.toggle('view_record', 'slide'); 
+																											return false;" %>
+		</li>
+	</ul>
+<% end %>
+
+<div>
+	<table class="form-act table_all">
+		<tr>
+			<th>
+				<label for="title">Titulo</label>
+			</th>
+				<td><%= @incidence.title %></td>
+				<td>
+					<span class="state state2 <%= @incidence.state %>">
+						<%= @incidence.state %>
+					</span>
+				</td>
+		</tr>
+
+		<tr>
+			<th>
+				<label for="description">Descripcion</label>
+			</th>
+			<td>
+				<%= @incidence.description %>
+			</td>
+		</tr>
+
+		<tr>
+			<th>
+				<label for="date">Fecha</label>
+			</th>
+			<td>
+				<%= @incidence.created_at.to_date %> <%=h @incidence.created_at.to_s(:only_time) %>
+			</td>
+		</tr>
+
+		<tr>
+			<th>
+				<label for="origin">Origen</label>
+			</th>
+			<td>
+				<%= @type_origin[@incidence.origin.to_i] %>
+			</td>
+		</tr>
+
+		<tr>
+			<th>
+				<label for="user">Usuario</label>
+			</th>
+			<td>
+				<%= User.find(@incidence.user_id).name %>
+			</td>
+		</tr>
+
+		<% if @incidence.state == 'reasignada' %>
+			<tr>
+				<th>
+					<label for="assigned_to">Usuario asignado</label>
+				</th>
+				<td>
+					<%=h User.find(@incidence.assigned_to).name %>
+				</td>
+			</tr>
+		<% end %>
+		<tr>
+			<th>
+				<label for="priority">Prioridad</label>
+			</th>
+			<td>
+				<%= @incidence.priority %>
+			</td>
+		</tr>
+
+		<tr>
+			<th>
+				<label for="type">Tipo</label>
+			</th>
+			<td>
+				<%= @incidence.type_inc %>
+			</td>
+		</tr>
+
+		<tr>
+			<th>
+				<label for="attachments">Archivos asociados</label>
+			</th>
+			<% if @attachments.blank? %>
+				<td>No hay archivos adjuntos</td>
+			<% else %>
+				<td>
+					<ul class="records">
+						<% for x in @attachments %>
+							<li>
+								<%= link_to_file x.name_file_name, x.name.url %>
+							</li>
+						<% end %>
+					</ul>
+				</td>
+			<% end %>
+		</tr>
+	</table>
+</div>
+
+<div id="view_record" class="mod_cuart mod_cuart_aux form_setting2" style="display: none">
+	<%= render :partial => 'records', :locals => {:id => @incidence.id} %>
+</div>
+<div id="edit_inc" class ="mod_cuart form_setting2" style="display: none">
+		<%= render :partial => 'edit', :locals => {:id => @incidence.id} %>
+</div>
+<div id="to_opened_inc" class ="mod_cuart form_setting2" style="display: none">
+		<%= render :partial => 'to_edited', :locals => {:incidence => @incidence,
+																										:type => 'abierta'} %>
+</div>
+<div id="to_resolved_inc" class ="mod_cuart form_setting2" style="display: none">
+		<%= render :partial => 'to_edited', :locals => {:incidence => @incidence,
+																										:type => 'resuelta'} %>
+</div>
+<div id="to_reassigned_inc" class ="mod_cuart form_setting2" style="display: none">
+		<%= render :partial => 'to_edited', :locals => {:incidence => @incidence,
+																										:type => 'reasignada'} %>
+</div>
+<div id="include_attachment" class ="mod_cuart form_setting2" style="display: none">
+		<%= render :partial => 'include_attachment', :locals => {:incidence => @incidence} %>
+</div>

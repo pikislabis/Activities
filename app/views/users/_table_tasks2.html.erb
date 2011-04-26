@@ -1,0 +1,99 @@
+<% @activities = Activity.get_activities_tasks(@user, current_date) %>
+<% @validated = TasksValidated.find(:first, :conditions => {   :user_id => @user,
+															 		:week => current_date.to_date.strftime("%W"),
+															 		:year => current_date.to_date.year}) 
+%> 
+
+<table class="table_week">
+	<tr class="table_title">
+		<% @days = days_of_week(current_date) %>
+		<td>Proyecto</td>
+		<td>Actividad</td>
+		<td>Lunes <%= @days[0]%></td>
+		<td>Martes <%= @days[1]%></td>
+		<td>Miercoles <%= @days[2]%></td>
+		<td>Jueves <%= @days[3]%></td>
+		<td>Viernes <%= @days[4]%></td>
+		<td>Sabado <%= @days[5]%></td>
+		<td>Domingo <%= @days[6]%></td>
+		<td>Total</td>
+	</tr>
+	<% if @activities.blank? %>
+	<tr>
+		<td class="no_tasks" colspan=11>
+			No existen tareas para estas fechas.
+		</td>
+	</tr>
+	<% else %>
+		<% @totals = [0, 0, 0, 0, 0, 0, 0] %>
+		<% @totals_billable = [0, 0, 0, 0, 0, 0, 0] %>
+		<% @totals_activity = Array.new %>
+		<% for x in (0..@activities.length - 1) %>
+			<tr>
+				<% @unit_activity = Activity.find(@activities[x].to_i) %>
+
+				<td><%= Project.find(@unit_activity.project_id).name %></td>
+				<td><%= @unit_activity.name %></td>
+				<% @totals_activity[x] = 0 %>
+
+				<% for z in (0..6) %>
+					<% @task = Task.find(:first, :conditions => {:user_id => user,	
+										:activity_id => @unit_activity.id,
+										:date =>  current_date.to_date.monday + z})
+					%>
+					<td>
+						<% if !@task.nil? %>
+							<%= @task.hours	%>
+							<% @totals[z] += @task.hours %>
+							<% if @unit_activity.project.billable? %>
+								<% @totals_billable[z] += @task.hours %>
+							<% end %>
+						<% end %>
+					</td>
+					<% if !@task.nil? %>
+						<% @totals_activity[x] += @task.hours %>
+					<% end %>
+				<% end %>
+
+				<td><%= @totals_activity[x] %></td>
+
+			</tr>
+		<% end %>
+			<tr class="total">
+				<td></td>
+				<td></td>
+				<% for z in (0..6) %>
+					<td class="total2"><%= @totals[z] %></td>
+				<% end %>
+				<td class = "total3">
+					<%= sum_total(@totals)%>
+				<td>
+			</tr>
+			<tr class="total">
+				<td></td>
+				<td>Facturables</td>
+				<% for z in (0..6) %>
+					<td class="total2 no-border"><%= @totals_billable[z] %></td>
+				<% end %>
+				<td class = "total4">
+					<%= sum_total(@totals_billable) %>
+				</td>
+			</tr>
+	<% end %>
+</table>
+<% if (@validated.nil? or @validated.validated == 0) %>
+	<p class= "hide_view center2">
+		La semana aún no está cerrada.
+	</p>
+<% elsif  !@validated.nil? and @validated.validated != 0 %>
+	<p class = "hide_view center2">
+		La semana está cerrada.
+		<span class="pdf_link">
+			<%= link_to ( 	image_tag("pdf2.jpg"), 
+								:action => "pdf_tasks", 
+								:id => user, 
+								:date => session[:current_date].to_date.monday )
+			%>
+		</span>
+	</p>
+<% end %>

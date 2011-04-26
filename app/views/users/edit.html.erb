@@ -1,0 +1,74 @@
+<% content_for (:activity_nav) do %>
+	<ul>
+			<li class="selected"><%= link_to 'Editar perfil', :action => 'edit', :id => session[:user_id] %></li>
+	</ul>
+<% end %>
+<div class="course-form">
+	<%= error_messages_for :user %>
+		
+	<% form_for(@user) do |f|%>
+		<table class="form_setting">
+				<tr>
+					<th>
+						<label for="long_name">Nombre</label>
+					</th>
+					<td>
+						<% if @current_user.has_role?("admin") %>
+							<%= f.text_field :long_name, :size => 30 %>
+					    <% else %>
+							<%= f.text_field :long_name,  :size => 30, :disabled => 'disabled' %>
+						<% end %>
+					</td>
+			  	</tr>
+			
+				<tr>
+					<th>
+						<label for="email_corp">E-mail corporativo</label>
+					</th>
+					<td>
+						<% if @current_user.has_role?("admin") %>
+							<%= f.text_field :email_corp %>
+						<% else %>
+			  				<%= f.text_field :email_corp, :disabled => 'disabled' %>
+						<% end %>
+					</td>
+			  	</tr>
+			
+				<tr>
+					<th>
+						<label for="name">Usuario</label>
+				  	</th>
+				  	<td>
+				  		<p class="hint">Nombre con el que se identifica en la aplicación.</p>	
+						<% if @current_user.has_role?("admin") %>
+							<%= f.text_field :name, :size => 10 %>
+						<% else %>
+				  			<%= f.text_field :name, :size => 10, :disabled => 'disabled' %>
+						<% end %>
+					</td>
+				</tr>
+				
+				<tr>
+					<th>
+						<label for="password">Contraseña</label>
+					</th>
+					<td>
+						<p class="hint">Deje la contraseña en blanco si no quiere que se modifique.</p>	
+						<%= f.password_field :password, :size => 20 %>
+					</td>
+				</tr>
+					
+				<tr>
+					<th>
+						<label for="password_confirmation">Confirmar contraseña</label>
+					</th>
+					<td>
+						<%= f.password_field :password_confirmation, :size => 20 %>
+					</td>
+				</tr>
+		</table>	
+		<p class="btns">
+			<%= f.submit "Actualizar" %>
+		</p>		
+	<% end %>				
+</div>

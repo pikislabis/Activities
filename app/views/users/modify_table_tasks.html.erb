@@ -1,0 +1,57 @@
+<p class="form_month">
+	<%= session[:current_date].to_date.strftime("%B").capitalize%>, <%= session[:current_date].to_date.year%>
+</p>
+
+<%if @hide == 1%>	
+	<div id="hide_form" class="mod_all mod_ter" style="display:none;">
+<% else %>
+	<div id="hide_form" class="mod_all mod_ter">
+<% end %>
+	<% form_tag({:action => "create_tasks"},:id => 'task') do %>
+		<% if @validated.nil? or @validated.validated == 0 %>
+			<table class="table_week">
+				<tr class="table_title">
+					<td>Proyecto</td>
+					<td>Actividad</td>
+					<td>Lunes <%= @days[0]%></td>
+					<td>Martes <%= @days[1]%></td>
+					<td>Miercoles <%= @days[2]%></td>
+					<td>Jueves <%= @days[3]%></td>
+					<td>Viernes <%= @days[4]%></td>
+				</tr>
+				<tr>			
+					<td><%= @project.name %></td>
+					<td><%= @activity.name %></td>
+					<% session[:current_act] = @activity.id %>
+							
+					<% for y in (0..4)%>
+						<% @task = Task.find(:first, :conditions => {:user_id => session[:user_id],	
+													:activity_id => @activity.id,
+													:date =>  session[:current_date].to_date.monday + y})
+						%>
+						<% @param = "hours_tag_" + y.to_s  %>
+						<td>
+							<% if @task.nil? %>
+								<%= text_field_tag @param, nil,:size => "4"%>
+							<% else %>
+								<%= text_field_tag @param, @task.hours, :size => "4"%>
+							<% end %>
+						</td>
+					<% end %>
+					<td colspan=2>
+						<%= submit_tag "Guardar" %>
+					</td>
+				</tr>
+			</table>
+		<% else %>
+			<p>
+				La semana está cerrada
+			</p>
+		<% end %>
+	<% end %>
+</div>
+<div class="table_act">
+	<% form_tag (:action => "delete_all_tasks") do %>
+		<%= render :partial => 'table_tasks', :locals => {:user => session[:user_id]} %>
+	<% end %>
+</div>

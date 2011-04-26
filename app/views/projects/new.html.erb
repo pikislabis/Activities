@@ -1,0 +1,66 @@
+<% content_for (:activity_nav) do %>
+	<ul>
+			<li><%= link_to 'Usuarios', :controller => 'users', :action => 'list' %></li>
+			<li class="selected"><%= link_to 'Proyectos', :controller => 'projects', :action => 'index' %></li>
+			<li><%= link_to 'Actividades', :controller => 'activities', :action => 'index' %></li>
+			<% if User.find(session[:user_id]).has_role?('admin') %>
+				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
+			<% end %>
+	</ul>
+<% end %>
+
+<% content_for (:action_nav) do %>
+	<ul>
+		<li class="selected2">
+			<%= link_to 'Nuevo proyecto', :controller => 'projects', :action => 'new' %>
+		</li>
+	</ul>	
+<% end %>
+
+<div class="act-form">
+
+	<%= error_messages_for :user %>
+
+	<% form_for(@project) do |f| %>
+	
+		<table class="form_setting">
+			<tr>
+				<th>
+					<label>Nombre</label>
+				</th>
+				<td>
+					<%= f.text_field :name, :size => 40 %>
+				</td>
+			</tr>
+			<tr>
+				<th>
+					<label>Descripcion</label>
+				</th>
+				<td>
+					<%= f.text_area :description, :rows => 6 %>
+				</td>
+			</tr>
+			<tr>
+				<% @users = Array.new %>
+	    		<% for user in User.find(:all) %>
+	  				<% if user.has_role?("super_user") %>
+	  					<% @users << user %>
+	  				<% end %>
+	  			<% end %>
+				<th>
+					<label>Jefe de proyecto</label>
+				</th>
+				<td>
+					<%= f.select :user_id,
+						@users.collect{|user| [user.name, user.id]},
+    					:prompt => "Seleccione un usuario",
+    					:selected => nil
+					%>
+				</td>
+			</tr>
+		</table>
+		<p class="btns">
+			<%= f.submit 'Añadir'%>
+		</p>
+	<% end %>
+</div>

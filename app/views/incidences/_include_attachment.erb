@@ -1,0 +1,23 @@
+<% form_tag ({:action => "include_attachment", :id => incidence.id }, :multipart => true) do %>
+	<table class="form_setting">
+		<tr>
+			<th>
+				<label for="text">Comentario</label>
+			</th>
+			<td>
+				<%= text_area_tag :comment, nil, :rows => 5 %>
+			</td>
+		</tr>
+		<tr>
+			<th>
+				<label for="adjunto">Adjuntar archivo</label>
+			</th>
+			<td>
+				<%= file_field_tag :name %>
+			</td>
+		</tr>
+	</table>
+	<p class="btns">
+		<%= submit_tag "Adjuntar" %>
+	</p>
+<% end %>

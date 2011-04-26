@@ -1,0 +1,59 @@
+<% if @user.id == session[:user_id] %>
+
+<% else %>
+
+	<% content_for (:activity_nav) do %>
+		<ul>
+			<li class="selected"><%= link_to 'Usuarios', :controller => 'users', :action => 'list' %></li>
+			<li><%= link_to 'Proyectos', :controller => 'projects', :action => 'index' %></li>
+			<li><%= link_to 'Actividades', :controller => 'activities', :action => 'index' %></li>
+			<% if User.find(session[:user_id]).has_role?('admin') %>
+				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
+			<% end %>
+		</ul>
+	<% end %>
+	
+	<%content_for (:action_nav) do %>
+		<ul>
+			<li><%= link_to 'Perfil', :controller => 'users', :action => 'show', :id => @user.id %></li>
+			<li><%= link_to 'Proyectos', :controller => 'users', :action => 'edit_proj', :id => @user.id %></li>
+			<li><%= link_to 'Hoja actividades', :controller => 'users', :action => 'view_tasks', :id => @user.id %></li>
+			<li class="selected2"><%= link_to 'Hoja gastos', :controller => 'users', :action => 'view_spendings', :id => @user.id %></li>
+		</ul>
+	<% end %>
+
+	<div class="top">
+		<h3><%= @user.name %></h3>
+	</div>
+
+<% end %>
+
+<div id="act-form">
+	<table class="form-act">
+		<tr>
+			<th>Seleccione la fecha</th>
+			<td>	
+				<%= calendar_date_select_tag :current_date, @current_date, 
+					{:buttons => false, :year_range => 5.years.ago..1.years.from_now, :size => 10,
+					:onchange => "new Ajax.Updater('table_spendings', 
+					'/users/modify_table_spendings?'+$H({current_date:this.calendar_date_select.selected_date}).toQueryString(),
+					{asynchronous:true, evalScripts:true})"}
+				%>
+			</td>
+		</tr>
+	</table>	
+	<div id="table_spendings">
+		<p class="form_month">
+			<%= @current_date.to_date.strftime("%B").capitalize %>, <%= @current_date.to_date.year %>
+		</p>
+		<%= render :partial => 'table_spendings', :locals => {:import => @import} %>
+		<div id="image_link">
+			<%= link_to ( image_tag("pdf.jpg"), 
+						:action => "pdf_spendings", 
+						:id => session[:user_view], 
+						:date_month => @current_month, 
+						:date_year => @current_year ) 
+			%>
+		</div>	
+	</div>
+</div>

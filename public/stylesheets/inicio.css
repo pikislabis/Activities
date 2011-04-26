@@ -1,0 +1,136 @@
+body {
+	background:#EEEEEE none repeat scroll 0 0;
+	color:#333333;
+	font-family:"Helvetica Neue",Helvetica,"Lucida Grande","Helvetica Neue",Arial,sans-serif;
+	font-size:12px;
+	font-size-adjust:none;
+	font-stretch:normal;
+	font-style:normal;
+	font-variant:normal;
+	font-weight:normal;
+	line-height:1.5em;
+	margin:0;
+	min-width:950px;
+	padding:0;
+	text-align:center;
+}
+
+html, div, map, dt, isindex, form {
+	display:block;
+}
+
+#header{
+	padding-top: 27px;
+}
+
+ul, li, form, input, dt, dl, dd, ol, div, p, blockquote, h1, h2, h3, h4, h5, h6, a {
+	margin:0;
+	padding:0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-size:100%;
+}
+
+a {
+	outline-color:-moz-use-text-color;
+	outline-style:none;
+	outline-width:medium;
+}
+
+a {
+	outline-color:-moz-use-text-color;
+	outline-style:none;
+	outline-width:medium;
+}
+
+a:link, a:visited {
+	color:#3388BB;
+	text-decoration:none;
+}
+
+a:hover {
+	color:#333333;
+}
+
+#errors, #signin {
+	-moz-border-radius-bottomleft: 4px;
+	-moz-border-radius-bottomright: 4px;
+	-moz-border-radius-topleft: 4px;
+	-moz-border-radius-topright: 4px;
+	background:#FFFFFF none repeat scroll 0 0;
+	color:#333333;
+	font-weight:bold;
+	margin:18px auto;
+	text-align:left;
+	width:500px;
+}
+
+#header h1 a {
+	border:medium none;
+	color:#BBBBBB;
+	display:block;
+	font-size:250%;
+	margin:0 auto;
+	text-decoration:none;
+}
+
+#errors h3, #signin h3 {
+	-moz-border-radius-topleft:4px;
+	-moz-border-radius-topright:4px;
+	background:#006699 none repeat scroll 0 0;
+	color:#FFFFFF;
+	padding:9px 18px;
+}
+
+h3 {
+	display:block;
+	font-weight:bold;
+}
+
+.box-content {
+	padding:18px;
+}
+
+input[type="text"], input[type="password"], textarea {
+	border-color:#AAAAAA #CCCCCC #CCCCCC #AAAAAA;
+	border-style:solid;
+	border-width:1px;
+}
+
+dd input {
+	font-size:150%;
+	margin-bottom: 10px;
+}
+
+.btns {
+	-moz-border-radius-bottomleft:2px;
+	-moz-border-radius-bottomright:2px;
+	-moz-border-radius-topleft:2px;
+	-moz-border-radius-topright:2px;
+	margin-top: 9px;
+	background:#E7E7E7 none repeat scroll 0 0;
+	padding: 6px;
+	text-align:right;
+}
+
+#flashes {
+	font-weight:bold;
+	text-align:center;
+}
+
+#flash-notice, #flash-errors{
+	background:#BBEECC none repeat scroll 0 0;
+	border-color:#448833 -moz-use-text-color #88DDAA;
+	border-style:solid none;
+	border-width:3px medium 2px;
+	color:#003311;
+	padding:10px;
+}
+
+#flash-errors{
+	background:#FFDDDD none repeat scroll 0 0;
+	border-bottom-color:#FFBBBB;
+	border-top-color:#CC0000;
+	color:#770000;
+}

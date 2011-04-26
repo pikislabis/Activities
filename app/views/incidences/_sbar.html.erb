@@ -1,0 +1,35 @@
+<h3>
+	<% @incidences = Incidence.find(:all, :conditions => {:state => "creada"}) %>
+	<% if @incidences.length == 0 %>
+		No hay incidencias nuevas.
+	<% else %>
+		Hay un total de <%= @incidences.length %> incidencias nuevas.
+ 	<% end %>
+</h3>
+<ul id="incidences" class="list_inc">
+	<% for x in @incidences %>
+		<li class="incid">
+			<span class="number"><%= at_array(x,@incidences) %></span>
+			<%= link_to x.title, x %>
+		</li>
+	<% end %>
+</ul>
+
+<h3>
+	<% @incidences_open = Incidence.find(:all, :conditions => {:state => "abierta"}) %>
+	<% if @incidences_open.length == 0 %>
+		No hay incidencias abiertas.
+	<% else %>
+		Hay un total de <%= @incidences_open.length %> incidencias abiertas.
+ 	<% end %>
+</h3>
+
+<ul id="incidences" class="list_inc">
+	<% for x in @incidences_open %>
+		<li class="incid">
+			<span class="number number_green"><%= at_array(x,@incidences_open) %></span>
+			<%= link_to x.title, x %>
+		</li>
+	<% end %>
+</ul>
+

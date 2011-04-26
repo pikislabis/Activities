@@ -1,0 +1,38 @@
+<% content_for (:action_nav) do %>
+	<ul>
+			<li><%= link_to 'Nueva alerta', :action => 'new_alert' %></li>
+	</ul>
+<% end %>
+
+<% if @alerts.empty? %>
+	<h2>No tiene alertas programas</h2>
+<% else %>
+	<h2>Tiene <%= pluralize(@alerts.total_entries, 'alerta')%>. </h2>
+	<ul class="users_list">
+	<% for x in @alerts %>
+		<li>
+			<label class="date_label">
+				<%= x.date.strftime("%d-%m-%Y") %>
+				<span class="act_desc">
+					<%= link_to image_tag('/images/edit.gif'), "#", :onclick => "Effect.toggle('edit_alert_'+'#{x.id}', 'slide'); return false;"
+					%>
+				</span>	
+				<span class="act_desc">
+					<%= link_to image_tag('/images/delete.gif'), {:action => :delete_alert, :id => x.id},
+																			  :confirm => "¿Está seguro de querer eliminar la alerta?"
+					%>
+				</span>
+				<br/>				
+				<span class="help"> <%= x.text %> </span>
+			</label>
+			<div class="user_name">
+				<%= @freq_type[x.frequency]  %>
+			</div>
+			<div id="edit_alert_<%= x.id %>" class="mod_cuart" style="display: none">
+				<%= render :partial => 'edit_alert', :locals => {:alert => x} %>
+			</div>
+		</li>
+	<% end %>
+	</ul>
+	<%= will_paginate @alerts %>
+<% end %>
