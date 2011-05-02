@@ -98,19 +98,15 @@ class User < ActiveRecord::Base
    	iso = c.iconv(texto)
   end
 	
-	# Indica si current_user pertenece a un proyecto de los que user es jefe de proyecto
-	def self.belong_to_own_project(user, current_user)
-		users = user.projects.collect {|x| x.user_projects }.flatten.collect{|x| x.user_id }
-		users.include?(current_user.id)
+	# Indica si user pertenece a un proyecto de los que el usuario es jefe de proyecto
+	def belong_to_own_project(user)
+	  users = self.projects.collect {|x| x.user_projects }.flatten.collect{|x| x.user_id }
+		users.include?(user.id)
 	end
 
-	def projects_belong
-		self.user_projects.collect{|x| Project.find(x.project_id)}
-	end
-	
 	def self.allow_to_view (admin, user)
 		(admin == user) or admin.has_role?("admin") or
-		 (admin.has_role?("super_user") and User.belong_to_own_project(admin, user))
+		 (admin.has_role?("super_user") and admin.belong_to_own_project(user))
 	end
 
   protected

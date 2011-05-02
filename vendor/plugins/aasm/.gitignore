@@ -1,4 +1,8 @@
-rdoc
-pkg
-coverage
+*.sw?
 *~
+.DS_Store
+.idea
+coverage
+pkg
+rdoc
+Gemfile.lock

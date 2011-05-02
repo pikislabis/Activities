@@ -13,7 +13,7 @@ module AASM
       #
       # Adds
       #
-      #   before_validation_on_create :aasm_ensure_initial_state
+      #   before_validation :aasm_ensure_initial_state, :on => :create
       #
       # As a result, it doesn't matter when you define your methods - the following 2 are equivalent
       #
@@ -37,23 +37,29 @@ module AASM
         base.send(:include, AASM::Persistence::ActiveRecordPersistence::ReadState) unless base.method_defined?(:aasm_read_state)
         base.send(:include, AASM::Persistence::ActiveRecordPersistence::WriteState) unless base.method_defined?(:aasm_write_state)
         base.send(:include, AASM::Persistence::ActiveRecordPersistence::WriteStateWithoutPersistence) unless base.method_defined?(:aasm_write_state_without_persistence)
-        
-        if base.respond_to?(:named_scope)
+
+        if base.respond_to?(:named_scope) || base.respond_to?(:scope)
           base.extend(AASM::Persistence::ActiveRecordPersistence::NamedScopeMethods)
-          
+
           base.class_eval do
             class << self
-              alias_method :aasm_state_without_named_scope, :aasm_state
-              alias_method :aasm_state, :aasm_state_with_named_scope
+              unless method_defined?(:aasm_state_without_scope)
+                alias_method :aasm_state_without_scope, :aasm_state
+                alias_method :aasm_state, :aasm_state_with_scope
+              end
             end
           end
         end
         
-        base.before_validation_on_create :aasm_ensure_initial_state
+        if ActiveRecord::VERSION::MAJOR >= 3
+          base.before_validation(:aasm_ensure_initial_state, :on => :create)
+        else
+          base.before_validation_on_create(:aasm_ensure_initial_state)
+        end        
       end
 
       module ClassMethods
-        # Maps to the aasm_column in the database.  Deafults to "aasm_state".  You can write:
+        # Maps to the aasm_column in the database.  Defaults to "aasm_state".  You can write:
         #
         #   create_table :foos do |t|
         #     t.string :name
@@ -119,7 +125,7 @@ module AASM
 
         # Returns the current aasm_state of the object.  Respects reload and
         # any changes made to the aasm_state field directly
-        # 
+        #
         # Internally just calls <tt>aasm_read_state</tt>
         #
         #   foo = Foo.find(1)
@@ -136,7 +142,7 @@ module AASM
         end
 
         private
-        
+
         # Ensures that if the aasm_state column is nil and the record is new
         # that the initial state gets populated before validation on create
         #
@@ -153,14 +159,14 @@ module AASM
         #   foo.aasm_state # => nil
         #
         def aasm_ensure_initial_state
-          send("#{self.class.aasm_column}=", self.aasm_current_state.to_s)
+          send("#{self.class.aasm_column}=", self.aasm_enter_initial_state.to_s) if send(self.class.aasm_column).blank?
         end
 
       end
 
       module WriteStateWithoutPersistence
         # Writes <tt>state</tt> to the state column, but does not persist it to the database
-        # 
+        #
         #   foo = Foo.find(1)
         #   foo.aasm_current_state # => :opened
         #   foo.close
@@ -178,8 +184,7 @@ module AASM
 
       module WriteState
         # Writes <tt>state</tt> to the state column and persists it to the database
-        # using update_attribute (which bypasses validation)
-        # 
+        #
         #   foo = Foo.find(1)
         #   foo.aasm_current_state # => :opened
         #   foo.close!
@@ -190,12 +195,12 @@ module AASM
         def aasm_write_state(state)
           old_value = read_attribute(self.class.aasm_column)
           write_attribute(self.class.aasm_column, state.to_s)
-          
+
           unless self.save
             write_attribute(self.class.aasm_column, old_value)
             return false
           end
-          
+
           true
         end
       end
@@ -212,23 +217,23 @@ module AASM
         #     aasm_state :opened
         #     aasm_state :closed
         #   end
-        # 
+        #
         #   foo = Foo.new
         #   foo.current_state # => :opened
         #   foo.close
         #   foo.current_state # => :closed
-        #   
+        #
         #   foo = Foo.find(1)
         #   foo.current_state # => :opened
         #   foo.aasm_state = nil
         #   foo.current_state # => nil
-        # 
+        #
         # NOTE: intended to be called from an event
         #
         # This allows for nil aasm states - be sure to add validation to your model
         def aasm_read_state
           if new_record?
-            send(self.class.aasm_column).blank? ? self.class.aasm_initial_state : send(self.class.aasm_column).to_sym
+            send(self.class.aasm_column).blank? ? aasm_determine_state_name(self.class.aasm_initial_state) : send(self.class.aasm_column).to_sym
           else
             send(self.class.aasm_column).nil? ? nil : send(self.class.aasm_column).to_sym
           end
@@ -236,10 +241,16 @@ module AASM
       end
 
       module NamedScopeMethods
-        def aasm_state_with_named_scope name, options = {}
-          aasm_state_without_named_scope name, options
-          self.named_scope name, :conditions => {self.aasm_column => name.to_s} unless self.scopes.include?(name)
-        end       
+        def aasm_state_with_scope name, options = {}
+          aasm_state_without_scope name, options
+          
+          unless self.respond_to?(name)
+            scope_options = {:conditions => { "#{table_name}.#{self.aasm_column}" => name.to_s}}
+            scope_method = ActiveRecord::VERSION::MAJOR >= 3 ? :scope : :named_scope
+            self.send(scope_method, name, scope_options)
+          end
+          
+        end
       end
     end
   end

@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-		
+
 	skip_before_filter :authorize, :only => [:login, :activate]
 	before_filter :values
 	
@@ -39,7 +39,7 @@ class UsersController < ApplicationController
 			redirect_to :action => :index
 			return
 		end
-		if !User.belong_to_own_project(@user, @current_user)
+		if !@user.belong_to_own_project(@current_user)
 			flash[:error] = "No tiene permisos para esta accion."
 			redirect_to :action => :index
 		end
@@ -60,7 +60,7 @@ class UsersController < ApplicationController
 	def edit_proj
 		@user = User.find(params[:id])
 		@user_admin = User.find(session[:user_id])
-		if !User.belong_to_own_project(@user, @current_user)
+		if !@user_admin.belong_to_own_project(@user)
 			flash[:error] = "No tiene permisos para esta accion."
 			redirect_to :action => :index
 		else
@@ -73,7 +73,11 @@ class UsersController < ApplicationController
 	def edit_tasks
 		@user = User.find(session[:user_id])
 		# Proyectos a los que esta adscrito el usuario
-		@projects = @user.projects_belong
+		@projects = @user.projects
+    if @projects.blank?
+      flash[:error] = "No está asociado a ningún proyecto."
+      redirect_to :action => :index and return false
+    end
 
 		# Si viene a traves de un enlace de la pagina principal index
 		if (params[:id1])
@@ -205,7 +209,9 @@ class UsersController < ApplicationController
     if user
       session[:user_id] = user.id
 
-      session[:current_project_id] = user.projects.first.id
+      if !user.projects.blank?
+        session[:current_project_id] = user.projects.first.id
+      end
 
       uri = session[:original_uri]
       session[:original_uri] = nil

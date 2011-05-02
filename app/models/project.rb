@@ -15,7 +15,7 @@ class Project < ActiveRecord::Base
     end
 	end
 
-	def self.belong_to_user(user, project)
-		user.projects.include?(project)
+	def belong_to_user(user)
+		user.projects.include?(self)
 	end
 end

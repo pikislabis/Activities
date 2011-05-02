@@ -40,7 +40,7 @@ class ProjectsController < ApplicationController
 		if @user.has_role?('admin')
 			@users = User.find(:all).select { |u| u.has_role?('super_user') }
 		end
-		if !Project.belong_to_user(@user, @project) and !@user.has_role?('admin')
+		if !@project.belong_to_user(@user) and !@user.has_role?('admin')
 			flash[:error] = "No tiene permisos para esta accion."
 			redirect_to(:action => 'index')
 			return

@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe AASM::SupportingClasses::Event do
   before(:each) do
@@ -48,6 +48,20 @@ describe AASM::SupportingClasses::Event, 'when firing an event' do
 
     event.fire(obj).should == :closed
   end
+
+
+  it 'should call the guard with the params passed in' do
+    event = AASM::SupportingClasses::Event.new(:event) do
+      transitions :to => :closed, :from => [:open, :received], :guard => :guard_fn
+    end
+
+    obj = mock('object')
+    obj.stub!(:aasm_current_state).and_return(:open)
+    obj.should_receive(:guard_fn).with('arg1', 'arg2').and_return(true)
+
+    event.fire(obj, nil, 'arg1', 'arg2').should == :closed
+  end
+
 end
 
 describe AASM::SupportingClasses::Event, 'when executing the success callback' do
@@ -96,6 +110,20 @@ describe AASM::SupportingClasses::Event, 'when executing the success callback' d
     model.should_receive(:success_callback1)
     model.should_receive(:success_callback2)
     model.with_array!
+  end
+
+  it "should call each success callback if passed an array of strings and/or symbols and/or procs" do
+    ThisNameBetterNotBeInUse.instance_eval {
+      aasm_event :with_array_including_procs, :success => [:success_callback1, 'success_callback2', lambda { |obj| obj.proc_success_callback }] do
+        transitions :to => :array, :from => [:initial]
+      end
+    }
+
+    model = ThisNameBetterNotBeInUse.new
+    model.should_receive(:success_callback1)
+    model.should_receive(:success_callback2)
+    model.should_receive(:proc_success_callback)
+    model.with_array_including_procs!
   end
 
   it "should call the success callback if it's a proc" do
