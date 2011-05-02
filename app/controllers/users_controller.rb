@@ -198,31 +198,24 @@ class UsersController < ApplicationController
 		$proj = 0
  
 		# Si no hay usuarios en el sistema, crea un usuario
-  	if request.post?
-	  	if User.count.zero?
-  			user = User.create(	:name => params[:name],
-    	 	                		:password => params[:password],
-       		 	             		:password_confirmation => params[:password])
-				user.save
-			else
-				reset_session
-    		user = User.authenticate(params[:name], params[:password])
-			end
 
-  		if user
-    		session[:user_id] = user.id
+    reset_session
+    user = User.authenticate(params[:name], params[:password])
 
-				session[:current_project_id] = user.user_projects.collect{|x|Project.find(x.project_id)}.first
+    if user
+      session[:user_id] = user.id
 
-    		uri = session[:original_uri]
-	  		session[:original_uri] = nil
-	  		redirect_to(uri || {:controller => "users", :action => "index" })
-	  		return
-  		else
-  			flash[:error] = "Usuario y/o password incorrectos.\n
-						<a href = ../forgot_password>¿Olvidó su contraseña?</a>"
-  		end
-		end
+      session[:current_project_id] = user.projects.first.id
+
+      uri = session[:original_uri]
+      session[:original_uri] = nil
+      redirect_to(uri || {:controller => "users", :action => "index" })
+      return
+    else
+      flash[:error] = "Usuario y/o password incorrectos.\n
+          <a href = ../forgot_password>¿Olvidó su contraseña?</a>"
+    end
+
 		render(:layout => false)
 	end
 
@@ -1007,7 +1000,6 @@ class UsersController < ApplicationController
 		    
 		    data = []
 		    @totals = [0,0,0,0,0]
-		    @total_m = 0
 		    for x in (0..@activities.length - 1)
 		    	@week = Array.new
 		    	@unit_activity = Activity.find(@activities[x].to_i)
@@ -1023,7 +1015,6 @@ class UsersController < ApplicationController
 					end
 					if !@week[z].nil?
 						@total_w += @week[z]
-						@total_m += @total_w
 					end 
 		    	end
 		    	
@@ -1055,7 +1046,9 @@ class UsersController < ApplicationController
 		    tab.show_headings = false
 		    
 		    data = []
-		    
+
+        @totals.each {|t| @total_m.nil? ? @total_m = t : @total_m += t}
+
 		    data << { 	"col1" => "",
 		    			"col2" => "",
 		    			"col3" => "<b>TOTAL: </b>",
@@ -1110,11 +1103,8 @@ private
 	# Funcion que resume un texto cuando la longitud es mayor que length, y le añade truncate_string
 	# al final
 	def truncate(text, length, truncate_string)
-  	if text
-    	l = length - truncate_string.chars.length
-     	chars = text.chars
-     	(chars.length > length ? chars[0...l] + truncate_string : text).to_s
-   	end
+  	l = length - truncate_string.size
+    text.length > length ? text[0...l] + truncate_string : text
 	end
 
 	# Devuelve un array con los dias (numero) de la semana a la que pertenece la fecha que se pasa
