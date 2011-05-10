@@ -20,25 +20,22 @@
 	<h3>Jefes de proyectos</h3>	
 </div>
 
-<% @users = User.find(:all) %>
-
 <ul id="users_list2">
 	<% for user in @users %>
-		<% if user.has_role2?("super_user") %>
-			<li>
+		<li>
 				<label>
 					<%= link_to user.long_name, :action => 'show', :id => user.id %>
 					<span class="act_desc">
 						<%= link_to image_tag('/images/delete.gif'), {:controller => 'users', 
-																													:action => 'delete_role',
-																													:id => user, :id2 => 2},
-																											:confirm => '¿Está seguro?'%>
+																	  :action => 'delete_role',
+																	  :id => user, :id2 => Role.find_by_name("super_user").id}},
+																	  :confirm => '¿Está seguro?'%>
 					</span>
 					<div class="user_name">
 						<%= user.name %>
 					</div>
 				</label>
-			</li>
+		</li>
 		<% end %>
 	<% end %>
 	<li>

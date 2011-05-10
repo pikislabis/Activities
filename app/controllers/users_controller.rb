@@ -196,30 +196,29 @@ class UsersController < ApplicationController
   
 	
 	def login
-		session[:current_date] = Date.today
-		@current_date = session[:current_date]
-		session[:user_id] = nil
-		$proj = 0
- 
-		# Si no hay usuarios en el sistema, crea un usuario
+    if !params[:name].nil?
 
-    reset_session
-    user = User.authenticate(params[:name], params[:password])
+      reset_session
+      user = User.authenticate(params[:name], params[:password])
 
-    if user
-      session[:user_id] = user.id
+      if user
+        session[:user_id] = user.id
+        session[:current_date] = Date.today
+        @current_date = session[:current_date]
+        $proj = 0
 
-      if !user.projects.blank?
-        session[:current_project_id] = user.projects.first.id
+        if !user.projects.blank?
+          session[:current_project_id] = user.projects.first.id
+        end
+
+        uri = session[:original_uri]
+        session[:original_uri] = nil
+        redirect_to(uri || {:controller => "users", :action => "index" })
+        return
+      else
+        flash[:error] = "Usuario y/o password incorrectos.\n
+            <a href = ../forgot_password>¿Olvidó su contraseña?</a>"
       end
-
-      uri = session[:original_uri]
-      session[:original_uri] = nil
-      redirect_to(uri || {:controller => "users", :action => "index" })
-      return
-    else
-      flash[:error] = "Usuario y/o password incorrectos.\n
-          <a href = ../forgot_password>¿Olvidó su contraseña?</a>"
     end
 
 		render(:layout => false)
@@ -528,7 +527,14 @@ class UsersController < ApplicationController
     	redirect_to(:action => :permissions_jp)
     end  
 	end
-	
+
+  def permissions
+    @users = User.find(:all).select{|u| u.has_role?("admin")}
+  end
+
+  def permissions_jp
+    @users = User.find(:all).select{|u| u.has_role?("super_user")}
+  end
 	
 	# Eliminacion de una semana de tareas
 	def delete_tasks
@@ -588,10 +594,11 @@ class UsersController < ApplicationController
 
 	# Eliminacion de los roles de los usuarios
 	def delete_role
-	  @roluser = RolesUser.find(:first, :conditions => {:user_id => params[:id], 
-																											:role_id => params[:id2]})
-	  @roluser.destroy
-	  
+    user = User.find(session[:user_id])
+    if user.has_role?("admin")
+      user.roles.delete(Role.find_by_name("admin"))
+    end
+
 	  redirect_to(:controller => 'users', :action => 'permissions')
 	end
 

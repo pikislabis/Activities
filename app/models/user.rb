@@ -100,8 +100,8 @@ class User < ActiveRecord::Base
 	
 	# Indica si user pertenece a un proyecto de los que el usuario es jefe de proyecto
 	def belong_to_own_project(user)
-	  users = self.projects.collect {|x| x.user_projects }.flatten.collect{|x| x.user_id }
-		users.include?(user.id)
+	  users = self.projects.collect {|x| x.user_projects }.flatten
+		users.include?(user) or self.has_role?("admin")
 	end
 
 	def self.allow_to_view (admin, user)

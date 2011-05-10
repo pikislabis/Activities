@@ -20,26 +20,21 @@
 	<h3>Administradores</h3>	
 </div>
 
-<% @users = User.find(:all) %>
-
 <ul id="users_list2">
 	<% for user in @users %>
-		<% if user.has_role?('admin') %>
-			<li>
-				<label>
-					<%= link_to user.long_name, :action => 'show', :id => user.id %>
-					<span class="act_desc">
-						<%= link_to image_tag('/images/delete.gif'), {:controller => 'users', 
-																													:action => 'delete_role', 
-																													:id => user.id, :id2 => 1},
-																												:confirm => '¿Está seguro?' %>
+		<li>
+			<label>
+				<%= link_to user.long_name, :action => 'show', :id => user.id %>
+				<span class="act_desc">
+					<%= link_to image_tag('/images/delete.gif'), {:controller => 'users', :action => 'delete_role',
+																						  :id => user.id, :id2 => Role.find_by_name("admin").id},
+																						  :confirm => '¿Está seguro?' %>
 					</span>
 					<div class="user_name">
 						<%= user.name %>
 					</div>
 				</label>
-			</li>
-		<% end %>
+		</li>
 	<% end %>
 	<li>
 		<span class="hide_view hide_view2">
