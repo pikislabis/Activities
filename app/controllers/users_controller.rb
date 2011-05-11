@@ -500,40 +500,23 @@ class UsersController < ApplicationController
 	
 	# Modificacion de los administradores y los jefes de proyectos
 	def mod_all
-		if (params[:id] == "1")
-		  @roluser = RolesUser.new(:role_id => "1", :user_id => params[:role][:user_id])
-		else
-		  @roluser = RolesUser.new(:role_id => "2", :user_id => params[:role][:user_id])
-		end
-		begin
-			@roluser.save
-			# Si introducimos un usuario como jefe de proyecto, eliminamos su rol referente a
-			# usuario normal
-			if (params[:id] == "2")
-      	@rol_norm_user = RolesUser.find(:first, 
-														:conditions => {:user_id => params[:role][:user_id], :role_id => 3})
-      	if !@rol_norm_user.nil?
-        	@rol_norm_user.destroy
-      	end
-    	end
-			flash[:notice] = "La modificacion ha sido realizada correctamente."
-		rescue Exception => e
-			flash[:error] = e.message
-		end
-		
-		if (params[:id] == "1")
-    	redirect_to(:action => :permissions)
-    else
-    	redirect_to(:action => :permissions_jp)
-    end  
+    role = Role.find(params[:id])
+    user = User.find(params[:role][:user_id])
+    user.roles << role
+
+    flash[:notice] = "La modificacion ha sido realizada correctamente."
+
+    redirect_to :back
 	end
 
   def permissions
-    @users = User.find(:all).select{|u| u.has_role?("admin")}
+    @users = Role.find_by_name("admin").users
+    @users2 = User.find(:all).select {|u| !u.has_role?("admin")}
   end
 
   def permissions_jp
-    @users = User.find(:all).select{|u| u.has_role?("super_user")}
+    @users = Role.find_by_name("super_user").users
+    @users2 = User.find(:all).select {|u| !u.has_role2?("super_user")}
   end
 	
 	# Eliminacion de una semana de tareas
@@ -594,12 +577,12 @@ class UsersController < ApplicationController
 
 	# Eliminacion de los roles de los usuarios
 	def delete_role
-    user = User.find(session[:user_id])
-    if user.has_role?("admin")
-      user.roles.delete(Role.find_by_name("admin"))
+    if User.find(session[:user_id]).has_role?("admin")
+      user = User.find(params[:id])
+      user.roles.delete(Role.find(params[:id2]))
     end
 
-	  redirect_to(:controller => 'users', :action => 'permissions')
+	  redirect_to :back
 	end
 
 	# Eliminacion de los usuarios
