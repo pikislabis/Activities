@@ -5,20 +5,20 @@
 <%= calendar_date_select_includes "blue" %>
 <div id="header">
 	<ul id="sec-nav">
-		<li><%= link_to 'Mi Cuenta', :controller => 'users',:action => 'edit', :id => session[:user_id] %></li>
+		<li><%= link_to 'Mi Cuenta', :controller => :users,:action => 'edit', :id => session[:user_id] %></li>
 		<li><%= link_to 'Desconectar', :controller => :users, :action => 'logout' %></li>
 	</ul>
-	<h1><%= link_to User.find(session[:user_id]).name, :controller => :users, :action => 'index' %></h1>
+	<h1><%= link_to User.find(session[:user_id]).name, :controller => :users, :action => :index %></h1>
 	<div id="nav" class="clear">
 		<ul>
-			<li><%= link_to 'Actividades', :controller => "users", :action => 'edit_tasks' %></li>
+			<li><%= link_to 'Actividades', :controller => :tasks, :action => 'index' %></li>
 			<li><%= link_to 'Gastos', :controller => "users", :action => 'view_spendings', :id => session[:user_id] %></li>
 			<li><%= link_to 'Alertas', :controller => "users", :action => 'view_alerts', :id => session[:user_id]%></li>
 			<li><%= link_to 'Incidencias', :controller => "incidences", :action => 'index' %></li>
 			<% if 	User.find(session[:user_id]).has_role?("admin") or 
 					User.find(session[:user_id]).has_role?("super_user") 
 			%>
-				<li id="admin"><%= link_to 'Administrador', :controller => "users", :action => 'admin_sec' %></li>
+				<li id="admin"><%= link_to 'Administrador', :controller => "admin/panel", :action => 'index' %></li>
 			<% end %>
 		</ul>
 	</div>

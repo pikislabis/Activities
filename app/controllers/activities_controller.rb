@@ -58,24 +58,6 @@ class ActivitiesController < ApplicationController
       render :action => "new"
     end
 	end
-  	
-
-	def destroy
-		@user = User.find(session[:user_id])
-    @act = Activity.find(params[:id])
-		if Activity.activity_include(@user, @act)
-    	begin
-    		@act.destroy
-    		flash[:notice] ="La actividad #{@act.name} ha sido eliminado"
-    	rescue Exception => e
-    		flash[:error] = e.message
-			end
-		else
-				flash[:error] = "No tiene permisos para esta acccion."
-		end
-    redirect_to(:controller => :activities, :action => :index )
-	end
-
 
 
 	protected

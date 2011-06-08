@@ -1,0 +1,42 @@
+<% content_for (:activity_nav) do %>
+	<ul>
+			<li><%= link_to 'Usuarios', admin_users_path %></li>
+			<li><%= link_to 'Proyectos', admin_projects_path %></li>
+			<li class="selected"><%= link_to 'Actividades', admin_activities_path %></li>
+			<% if User.find(session[:user_id]).has_role?('admin') %>
+				<li><%= link_to 'Permisos', :controller => 'admin/users', :action => 'permissions' %></li>
+			<% end %>
+	</ul>
+<% end %>
+<% content_for (:action_nav) do %>
+	<ul>
+		<li><%= link_to 'Nueva actividad', :action => 'new' %></li>
+	</ul>
+<% end %>
+
+<% if @activities.empty? %>
+ 	
+	<h2>No existe ninguna actividad.</h2>
+
+<% else %>
+	<ul class="users_list">
+		<% for act in @activities %>
+			<li>
+				<label>
+					<%= link_to act.name, :action => 'show', :id => act.id %> 
+					<span class="act_desc">
+						<%= link_to image_tag('/images/delete.gif'), act, :controller => 'activities', 
+										:method => :delete, :confirm => '¿Está seguro de querer eliminar esta actividad?'
+						%>
+					</span>
+					<br/>
+					<span class="help"><%= act.description %></span>
+				</label>
+				<div class="user_name">
+					<%= Project.find(act.project_id).name %>
+				</div>
+			</li>
+		<% end %>
+	</ul>
+	<%= will_paginate @activities %>
+<% end %>

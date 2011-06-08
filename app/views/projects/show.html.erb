@@ -8,11 +8,6 @@
 			<% end %>
 	</ul>
 <% end %>
-<% content_for (:action_nav) do %>
-	<ul>
-		<li><%= link_to 'Nueva actividad', :controller => 'activities', :action => 'new', :proj_id => @project.id %></li>
-	</ul>
-<% end %>
 
 <div class="top">
 	<h3><%= @project.name %></h3>
@@ -33,34 +28,8 @@
 				<label>Jefe de proyecto</label>
 			</th>
 			<td>
-				<%= User.find(@project.user_id).long_name %> (<%= User.find(@project.user_id).name%>)
-				<% if @user.has_role?('admin') %>
-					<div id="mod_proj" class="mod_all" style="display : none;">
-						<% form_for :project, :url => {:action => "mod_proj", :id => @project.id } do |f| %>
-							<p class="njp">
-								<label>Nuevo jefe de proyecto</label>
-							</p>
-							<p class="njp2">
-  								<%= f.select :user_id,
-									@users.collect{|user| [user.name, user.id]},
-									:prompt => "Seleccione un usuario",
-									:selected => nil
-								%>
-							</p>	
-							<p class="btns">
-								<%= f.submit "Añadir" %>
-							</p>
-						<% end %>
-					</div>
-				<% end %>
+				<%= @project.user.long_name %> (<%= @project.user.name %>)
 			</td>
-			<% if @user.has_role?('admin') %>
-				<td valign="top">
-					<span class="hide_view">
-						<%= link_to_function('▶Modificar', "Element.toggle('mod_proj')") %>
-					</span>
-				</td>
-			<% end %>
 		</tr>
 		<tr>
 			<th>
@@ -75,12 +44,6 @@
 								<span class="act_desc">
 									<%= truncate(acti.description, 60)%>
 								</span>
-								<span class="act_desc">
-									<%= link_to image_tag('/images/delete.gif'), acti, :controller => 'activities', 
-										:method => :delete, 
-										:confirm => '¿Está seguro de querer eliminar esta actividad?'
-							 		%>
-							 	</span>
 						</li>
 						<% end %>
 					</ul>

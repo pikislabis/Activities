@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110426104714) do
+ActiveRecord::Schema.define(:version => 20110516141614) do
 
   create_table "activities", :force => true do |t|
     t.string   "name"
@@ -65,6 +65,13 @@ ActiveRecord::Schema.define(:version => 20110426104714) do
     t.boolean  "billable"
   end
 
+  create_table "projects_users", :id => false, :force => true do |t|
+    t.integer  "project_id", :null => false
+    t.integer  "user_id",    :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "records", :force => true do |t|
     t.integer  "user_id"
     t.integer  "incidence_id"
@@ -80,8 +87,8 @@ ActiveRecord::Schema.define(:version => 20110426104714) do
   end
 
   create_table "roles_users", :id => false, :force => true do |t|
-    t.integer "role_id"
-    t.integer "user_id"
+    t.integer "role_id", :default => 0, :null => false
+    t.integer "user_id", :default => 0, :null => false
   end
 
   add_index "roles_users", ["role_id"], :name => "index_roles_users_on_role_id"
@@ -123,13 +130,6 @@ ActiveRecord::Schema.define(:version => 20110426104714) do
     t.integer  "week"
     t.integer  "year"
     t.integer  "validated"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  create_table "user_projects", :id => false, :force => true do |t|
-    t.integer  "project_id", :null => false
-    t.integer  "user_id",    :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end

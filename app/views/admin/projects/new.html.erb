@@ -1,8 +1,8 @@
 <% content_for (:activity_nav) do %>
 	<ul>
-			<li><%= link_to 'Usuarios', :controller => 'users', :action => 'list' %></li>
-			<li class="selected"><%= link_to 'Proyectos', :controller => 'projects', :action => 'index' %></li>
-			<li><%= link_to 'Actividades', :controller => 'activities', :action => 'index' %></li>
+			<li><%= link_to 'Usuarios', admin_users_path %></li>
+			<li class="selected"><%= link_to 'Proyectos', admin_projects_path %></li>
+			<li><%= link_to 'Actividades', admin_activities_path %></li>
 			<% if User.find(session[:user_id]).has_role?('admin') %>
 				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
 			<% end %>
@@ -21,7 +21,7 @@
 
 	<%= error_messages_for :user %>
 
-	<% form_for(@project) do |f| %>
+	<% form_for @project, :url => admin_projects_path(@project) do |f| %>
 	
 		<table class="form_setting">
 			<tr>
@@ -41,12 +41,6 @@
 				</td>
 			</tr>
 			<tr>
-				<% @users = Array.new %>
-	    		<% for user in User.find(:all) %>
-	  				<% if user.has_role?("super_user") %>
-	  					<% @users << user %>
-	  				<% end %>
-	  			<% end %>
 				<th>
 					<label>Jefe de proyecto</label>
 				</th>

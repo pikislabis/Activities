@@ -1,9 +1,10 @@
 class Project < ActiveRecord::Base
 	has_many  :activities,
 	          :dependent => :destroy
-	has_many  :user_projects,
-	          :dependent => :destroy
-	belongs_to :user
+
+	has_and_belongs_to_many :users
+
+  belongs_to :user
 
 	def self.paginate_user(user, page)
 		if user.has_role?('admin')

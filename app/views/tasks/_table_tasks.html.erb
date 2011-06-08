@@ -90,7 +90,7 @@
 	</p>
 <% elsif  !@validated.nil? and @validated.validated != 0 %>
 	<div id="image_link">
-		<%= link_to ( 	image_tag("pdf.jpg"), 
+		<%= link_to(image_tag("pdf.jpg"),
 						:action => "pdf_tasks", 
 						:id => user, 
 						:date => session[:current_date].to_date.monday)

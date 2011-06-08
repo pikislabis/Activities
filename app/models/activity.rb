@@ -1,17 +1,6 @@
 class Activity < ActiveRecord::Base
 	belongs_to :project
 
-	def self.pag_sql(page, user)
-		paginate_by_sql ['select distinct a.* from activities a, projects p, users u WHERE 
-																							(a.project_id = p.id AND p.user_id = ?)', user],
-																	 :per_page => 6, :page => page,
-																	 :order => 'project_id'
-	end
-
-	def self.pag(page)
-		paginate :per_page => 6, 	:page => page, :order => 'project_id'
-	end
-
 	def self.activity_include(user, activity)
 		activities = Project.find(:all, 
 								:conditions => {:user_id => user.id}).collect{|x| x.activities }

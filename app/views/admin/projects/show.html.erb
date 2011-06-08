@@ -1,0 +1,91 @@
+<% content_for (:activity_nav) do %>
+	<ul>
+		<li><%= link_to 'Usuarios', admin_users_path %></li>
+		<li class="selected"><%= link_to 'Proyectos', admin_projects_path %></li>
+		<li><%= link_to 'Actividades', admin_activities_path %></li>
+		<% if User.find(session[:user_id]).has_role?('admin') %>
+			<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
+		<% end %>
+	</ul>
+<% end %>
+<% content_for (:action_nav) do %>
+	<ul>
+		<li><%= link_to 'Nueva actividad', :controller => 'admin/activities', :action => 'new', :proj_id => @project.id %></li>
+	</ul>
+<% end %>
+
+<div class="top">
+	<h3><%= @project.name %></h3>
+</div>
+
+<div class="course-form">
+	<table class="form_setting">
+		<tr>
+			<th>
+				<label>Descripcion</label>
+			</th>
+			<td>
+				<%= @project.description %>
+			</td>
+		</tr>
+		<tr>
+			<th>
+				<label>Jefe de proyecto</label>
+			</th>
+			<td>
+				<%= User.find(@project.user_id).long_name %> (<%= User.find(@project.user_id).name%>)
+				<% if @user_logged.has_role?('admin') %>
+					<div id="mod_proj" class="mod_all" style="display : none;">
+						<% form_for :project, :url => {:action => "mod_proj", :id => @project.id } do |f| %>
+							<p class="njp">
+								<label>Nuevo jefe de proyecto</label>
+							</p>
+							<p class="njp2">
+  								<%= f.select :user_id,
+									@users.collect{|user| [user.name, user.id]},
+									:prompt => "Seleccione un usuario",
+									:selected => nil
+								%>
+							</p>	
+							<p class="btns">
+								<%= f.submit "Añadir" %>
+							</p>
+						<% end %>
+					</div>
+				<% end %>
+			</td>
+			<% if @user_logged.has_role?('admin') %>
+				<td valign="top">
+					<span class="hide_view">
+						<%= link_to_function('▶Modificar', "Element.toggle('mod_proj')") %>
+					</span>
+				</td>
+			<% end %>
+		</tr>
+		<tr>
+			<th>
+				<label>Actividades</label>
+			</th>
+			<td>
+				<div id="act_list">
+					<ul>
+						<% for acti in @project.activities %>
+						<li>
+								<%= link_to acti.name, :controller => 'activities', :action => 'show', :id => acti.id %>
+								<span class="act_desc">
+									<%= truncate(acti.description, 60)%>
+								</span>
+								<span class="act_desc">
+									<%= link_to image_tag('/images/delete.gif'), admin_activity_path(acti),
+										{:method => :delete,
+										:confirm => '¿Está seguro de querer eliminar esta actividad?'}
+							 		%>
+							 	</span>
+						</li>
+						<% end %>
+					</ul>
+				</div>	
+			</td>
+		</tr>
+	</table>
+</div>

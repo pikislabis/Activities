@@ -46,6 +46,21 @@ class ApplicationController < ActionController::Base
 		
 		def record_not_found
     		render :file => File.join(RAILS_ROOT, 'public', '404.html'), :status => 404
-  	end
+    end
+
+    # Devuelve un array con los dias (numero) de la semana a la que pertenece la fecha que se pasa
+	  # por parametro
+	  def days_of_week(date)
+  	  days = Array.new
+
+		  for x in (0..4)
+			  @date_aux = date.monday.day + x
+			  if(@date_aux > Time.days_in_month(date.monday.mon,date.monday.year))
+				  @date_aux -= Time.days_in_month(date.monday.mon,date.monday.year)
+			  end
+			  days << @date_aux
+		  end
+		  days
+	  end
 		
 end

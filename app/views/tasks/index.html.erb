@@ -1,0 +1,54 @@
+<% content_for (:activity_nav) do %>
+	<ul>
+			<li class="selected">
+              <%= link_to 'Modificar', :action => 'index'%>
+            </li>
+			<li>
+              <%= link_to 'Ver', :action => 'view_tasks', :id => session[:user_id] %>
+            </li>
+	</ul>
+<% end %>
+<h3>Modifique o introduzca nuevos datos</h3>
+<div id="act-form">
+	<table class="form-act">
+		<tr>
+			<th>Seleccione la fecha</th>
+			<td>
+				<%= calendar_date_select_tag :current_date, @current_date, 
+											{ :year_range => 2.years.ago..5.years.from_now, :size => 10,
+											:onchange => "new Ajax.Updater('table_tasks', 
+											'/users/modify_table_tasks?'+$H({current_date:this.calendar_date_select.selected_date}).toQueryString(),
+											{asynchronous:true, evalScripts:true})"}
+				%>
+			</td>
+		</tr>
+		<tr>
+			<th>Seleccione el proyecto</th>
+			<td>	
+				<%= collection_select(:project, :id, @projects, :id, :name) %>
+			</td>
+			<td>
+				<%= related_collection_select(:activity, :id, [:project, :id],
+												Activity.find(:all), :id, :name, :project_id) %>
+			</td>
+			<%= observe_field "project_id", :url=>{:action => :modify_table_tasks},:with =>"project" %>
+			<%= observe_field "activity_id", :url=>{:action => :modify_table_tasks},:with =>"activity" %>
+			<td>
+				<span class="hide_view">
+						<%= link_to "Añadir", "#", :onclick => "new Ajax.Updater('table_tasks', 
+												'/tasks/edit?'+ $H({id:'remote_function'}).toQueryString(),
+												{asynchronous:true, evalScripts:true})"
+						%>
+				</span>
+			</td>	
+  		</tr>
+    </table>
+    <div id="table_tasks">
+  	  <p class="form_month">
+		<%= @current_date.to_date.strftime("%B").capitalize %>, <%= @current_date.to_date.year %>
+	  </p>
+	  <% form_tag(:action => "delete_all_tasks") do %>
+		<%= render :partial => 'table_tasks', :locals => {:user => @user.id} %>
+	  <% end %>
+	</div>
+</div>

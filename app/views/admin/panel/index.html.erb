@@ -1,0 +1,10 @@
+<% content_for (:activity_nav) do %>
+	<ul>
+			<li><%= link_to 'Usuarios', :controller => 'admin/users', :action => 'index' %></li>
+			<li><%= link_to 'Proyectos', :controller => 'admin/projects', :action => 'index' %></li>
+			<li><%= link_to 'Actividades', :controller => 'admin/activities', :action => 'index' %></li>
+			<% if User.find(session[:user_id]).has_role?('admin') %>
+				<li><%= link_to 'Permisos', :controller => 'admin/users', :action => 'permissions' %></li>
+			<% end %>
+	</ul>
+<% end %>

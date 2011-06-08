@@ -1,0 +1,57 @@
+<% content_for (:activity_nav) do %>
+	<ul>
+			<li class="selected"><%= link_to 'Usuarios', admin_users_path %></li>
+			<li><%= link_to 'Proyectos', admin_projects_path %></li>
+			<li><%= link_to 'Actividades', admin_activities_path %></li>
+			<% if User.find(session[:user_id]).has_role?('admin') %>
+				<li><%= link_to 'Permisos', :controller => 'admin/users', :action => 'permissions' %></li>
+			<% end %>
+	</ul>
+<% end %>
+<% if @user_logged.has_role?('admin')%>
+	<% content_for (:action_nav) do %>
+		<ul>
+			<li><%= link_to 'Nuevo usuario', :action => 'new' %></li>
+		</ul>
+	<% end %>
+<% end %>
+
+<% if params[:search].blank? %>
+	<h2>Hay un total de <%= pluralize(@users.total_entries, 'usuario') %> en sus proyectos. </h2>
+<% else %>
+	<h2>La busqueda ha encontrado un total de <%= pluralize(@users.total_entries, 'usuario') %></h2>
+<% end %>
+<% form_tag admin_users_path, :method => 'get' do %>
+	<p>
+		<%= text_field_tag :search, params[:search] %>
+		<%= submit_tag "Buscar", :name => nil %>
+	</p>
+<% end %>
+<ul class="users_list">
+	<% for user in @users %>
+		<li>
+			<label>
+				<%= link_to user.long_name, :action => 'show', :id => user.id %>
+				<span class="act_desc">
+					<% if @user_logged.has_role?('admin') %>
+						<%= link_to image_tag('/images/delete.gif'), user, :controller => 'users', 
+													:method => :delete, 
+													:confirm => '¿Está seguro de querer eliminar este usuario?' 								%>
+					<% end %>
+				</span>
+				<br/>
+				<% if user.has_role?('admin') %>
+					<span class="help">  Administrador </span>
+				<% elsif user.has_role?('super_user') %>
+					<span class="help">  Jefe de proyecto </span>
+				<% else %>
+					<span class="help">  Usuario </span>
+				<% end %>
+			</label>
+			<div class="user_name">
+				<%= user.name %>
+			</div>
+		</li>
+	<% end %>
+</ul>
+<%= will_paginate @users %>

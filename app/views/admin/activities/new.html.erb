@@ -1,0 +1,68 @@
+<% content_for (:activity_nav) do %>
+	<ul>
+			<li><%= link_to 'Usuarios', :controller => 'users', :action => 'list' %></li>
+			<li><%= link_to 'Proyectos', :controller => 'projects', :action => 'index' %></li>
+			<li class='selected'><%= link_to 'Actividades', :controller => 'activities', :action => 'index' %></li>
+			<% if User.find(session[:user_id]).has_role?('admin') %>
+				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
+			<% end %>
+	</ul>
+<% end %>
+
+<% content_for (:action_nav) do %>
+	<ul>
+		<li class="selected2"><%= link_to 'Nueva actividad', :action => 'new' %></li>
+	</ul>
+<% end %>
+
+<div class="top">
+	<% if @proj != 0 %>
+		<h3>Nueva actividad para <%= Project.find(@proj).name %></h3>
+	<% end %>
+</div>
+
+<div class="act-form">
+
+	<%= error_messages_for :user %>
+
+	<% form_for(@activity) do |f| %>
+	
+		<table class="form_setting">
+			<tr>
+				<th>
+					<label>Nombre</label>
+				</th>
+				<td>
+					<%= f.text_field :name, :size => 40 %>
+				</td>
+			</tr>
+			<tr>
+				<th>
+					<label>Descripcion</label>
+				</th>
+				<td>
+					<%= f.text_area :description, :rows => 6 %>
+				</td>
+			</tr>
+			<% if @proj == 0 %>
+				<tr>
+					<th>
+						<label>Proyecto</label>
+					</th>
+					<td>
+						<%= f.select :project_id,
+							@projs.collect{|proj| [proj.name, proj.id]},
+		    				:prompt => "Selecciona un proyecto",
+		    				:selected => nil
+						%>
+					</td>
+				</tr>
+			<% else %>
+	  			<%= f.hidden_field :project_id, :value => @proj.to_i %>
+	  		<% end %>
+	  	</table>
+	  	<p class="btns">
+	  		<%= f.submit "Añadir actividad", :class => "submit" %>
+	  	</p>	
+	<% end %>
+</div>

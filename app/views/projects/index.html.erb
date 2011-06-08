@@ -8,25 +8,19 @@
 		<% end %>
 	</ul>
 <% end %>
-<% if @user.has_role?('admin') %>
-	<% content_for (:action_nav) do %>
-		<ul>
-			<li><%= link_to 'Nuevo proyecto', :controller => 'projects', :action => 'new' %></li>
-		</ul>	
-	<% end %>
-<% end %>
 
 <% if @projects.empty? %>
 	
 	<h2>No existe ningun proyecto.</h2>
 
 <% else %>
+
 	<ul class="users_list">
 		<% for project in @projects %>
 		   		<li>
 		   			<label>
 			   			<%= link_to project.name, :controller => 'projects', :action => 'show', :id => project.id %>
-			   			<% if @user.has_role?('admin') %>
+			   			<% if @user_logged.has_role?('admin') %>
 				   			<span class="act_desc">
 								<%= link_to image_tag('/images/delete.gif'), project, :controller => 'projects', 
 														:method => :delete, 
@@ -38,7 +32,7 @@
 			   			<span class="help"><%= project.description %></span>
 			   		</label>
 			   		<div class="user_name">
-			    		<%= User.find(project.user_id).name %>
+			    		<%= project.user.name %>
 			    	</div>
 		   		</li>
 	    <% end %>

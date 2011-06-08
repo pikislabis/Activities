@@ -11,7 +11,7 @@ class UsersController < ApplicationController
 													:pdf_tasks, :validated, :view_tasks, :modify_spending, :delete_all_tasks,
 													:save_spending]
 													
-	require_role "admin", :only => [:new, :destroy, :permissions, :permissions_jp]
+	require_role "admin", :only => [:new, :destroy, :permissions, :permissions_jp, :mod_all, :delete_role]
 	
 	protect_from_forgery :only => [:update, :delete, :create]
 	
@@ -54,19 +54,6 @@ class UsersController < ApplicationController
 		  flash[:error] = "Acceso denegado."
 	    redirect_to(:action => "index")
     end
-	end
-
-	# Muestra los proyectos a los que está adscrito un usuario
-	def edit_proj
-		@user = User.find(params[:id])
-		@user_admin = User.find(session[:user_id])
-		if !@user_admin.belong_to_own_project(@user)
-			flash[:error] = "No tiene permisos para esta accion."
-			redirect_to :action => :index
-		else
-			@projects = UserProject.find(:all,
-								:conditions => {:user_id => @user.id}).collect{|x| Project.find(x.project_id)}
-		end
 	end
 
 	# Editar las semanas de las hojas de actividades
@@ -182,19 +169,7 @@ class UsersController < ApplicationController
 	  	render :action => "edit"
 	  end
  	end
-	
-	# Muestra la lista de todos los usuarios si el usuario logueado es administrador,
-	# o de los usuarios que estan adscritos a sus proyectos si es jefe de proyecto
-	def list
-		@user = User.find(session[:user_id])
-		if @user.has_role?('admin')
-			@users = User.search(params[:search], params[:page])
-		elsif @user.has_role?('super_user')
-			@users = User.search2(params[:search], params[:page], @user.id)
-		end
-	end
-  
-	
+
 	def login
     if !params[:name].nil?
 
@@ -231,15 +206,6 @@ class UsersController < ApplicationController
 		redirect_to(:action => "login")
 	end
 
-	
-	def new
-    @user = User.new	
-	end
-	
-	def create
-	  create_new_user(params)
-	end
-	
 	# Activa un usuario nuevo
 	def activate
 	  user = User.find_by_activation_code(params[:activation_code]) unless 
@@ -258,34 +224,6 @@ class UsersController < ApplicationController
     end
 	end
 	
-
-	def create_new_user(attributes)
-	  @user = User.new(attributes[:user])
-	  if @user && @user.valid?
-			# Registra al usuario en el sistema sin aun activarlo
-	    @user.register!
-	    @roleUser = RolesUser.new
-			# Crea la primera tareas de validacion en el sistema pero sin validar
-	    @tasks_validated = TasksValidated.new(:user_id => @user.id, 
-																						:week => Date.today.strftime("%W"), 
-	      											              :year => Date.today.year,
-	      											              :validated => "0")
-	    @tasks_validated.save
-			# Crea el rol del usuario
-	    @roleUser.user = @user
-	    @roleUser.role_id = attributes[:super_user]
-	    @roleUser.save
-	  end
-	  
-	  if @user.errors.empty?
-	    flash[:notice] = "El usuario #{@user.name} ha sido creado satisfactoriamente a la espera de su activacion.\nAsignelo al menos a un proyecto."
-	    redirect_to(:action => :edit_proj, :id => @user.id)
-	  else
-	    flash[:error] = "Hubo un problema al crear la cuenta."
-	    render :action => :new
-	  end
-	end
-	
 	# Asigna un usuario a un proyecto
 	def save_user_proj
 		@user = User.find(params[:id])
@@ -302,71 +240,7 @@ class UsersController < ApplicationController
 		  redirect_to(:action => "edit_proj", :id => @user.id )
 		end
 	end
-	
-	# Funcion a la que se llama cuando se modifica algun parametro en la vista de la hoja
-	# de actividades.
-	# La variable hide sirve para controlar cuando mostrar el formulario de introduccion de
-	# los datos. Cuando se modifica la fecha, no se muestra. Solo cuando se pulsa el boton
-	# añadir que manda el parametro remote_function
-	def modify_table_tasks
-		@user = User.find(session[:user_id])
-		if (params[:current_date].nil? and session[:current_date].nil?)
-			session[:current_date] = Date.today
-		else
-			if !params[:current_date].nil?
-				session[:current_date] = params[:current_date]
-				@hide = 1
-			end
-		end
-		@current_date = session[:current_date]
 
-		if params[:id] == "remote_function"
-			@hide = 0
-			if params[:activity].nil?
-				if session[:current_activity_id].nil?
-					@project = Project.find(session[:current_project_id])
-					@activity = @project.activities.first
-				else
-					@activity = Activity.find(session[:current_activity_id])
-					@project = @activity.project
-				end
-			else
-				@activity = Activity.find(params[:activity])
-				@project = @activity.project
-			end
-		else
-  		if params[:project].nil?
-  			if params[:activity].nil?
-    			@project = Project.find(session[:current_project_id])
-    			@activity = @project.activities.first
-    		else
-    			@activity = Activity.find(params[:activity])
-    	  	@project = @activity.project
-    	  	session[:current_project_id] = @project.id
-    	  	session[:current_activity_id] = @activity.id
-  			end
-  		else
-  			@project = Project.find(params[:project])
-  			@activity = @project.activities.first
-  			session[:current_project_id] = @project.id
-  			session[:current_activity_id] = @activity.id
-  		end
-		end
-		
-		# Actividades con tareas ejecutadas
-
-		@activities = Activity.get_activities_tasks(@user, @current_date)
-		
-		@days = days_of_week(@current_date.to_date)
-		
-		# Mostrará si la semana seleccionada está validada
-		@validated = TasksValidated.find(:first, :conditions => {:user_id => session[:user_id],
-															 :week => session[:current_date].to_date.strftime("%W"),
-															 :year => session[:current_date].to_date.year})
-		render(:layout => false) 		
-	end
-  	
-  	
 	def modify_table_spendings
 		@user = User.find(session[:user_view])
 	  @current_date = params[:current_date]
@@ -577,10 +451,8 @@ class UsersController < ApplicationController
 
 	# Eliminacion de los roles de los usuarios
 	def delete_role
-    if User.find(session[:user_id]).has_role?("admin")
-      user = User.find(params[:id])
-      user.roles.delete(Role.find(params[:id2]))
-    end
+    user = User.find(params[:id])
+    user.roles.delete(Role.find(params[:id2]))
 
 	  redirect_to :back
 	end
@@ -1101,21 +973,6 @@ private
 	def truncate(text, length, truncate_string)
   	l = length - truncate_string.size
     text.length > length ? text[0...l] + truncate_string : text
-	end
-
-	# Devuelve un array con los dias (numero) de la semana a la que pertenece la fecha que se pasa
-	# por parametro 
-	def days_of_week(date)
-  	days = Array.new
-
-		for x in (0..4)
-			@date_aux = date.monday.day + x
-			if(@date_aux > Time.days_in_month(date.monday.mon,date.monday.year))
-				@date_aux -= Time.days_in_month(date.monday.mon,date.monday.year)
-			end
-			days << @date_aux
-		end	
-		days
 	end
   	
 	# Devuelve los proyectos en los que admin es jefe de proyecto y user está adscrito
