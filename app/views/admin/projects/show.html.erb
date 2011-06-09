@@ -10,7 +10,7 @@
 <% end %>
 <% content_for (:action_nav) do %>
 	<ul>
-		<li><%= link_to 'Nueva actividad', :controller => 'admin/activities', :action => 'new', :proj_id => @project.id %></li>
+		<li><%= link_to 'Nueva actividad', new_admin_project_activity_path(@project.id) %></li>
 	</ul>
 <% end %>
 

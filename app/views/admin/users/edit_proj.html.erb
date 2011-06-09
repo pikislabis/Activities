@@ -3,7 +3,7 @@
 			<li class="selected"><%= link_to 'Usuarios', admin_users_path %></li>
 			<li><%= link_to 'Proyectos', admin_projects_path %></li>
 			<li><%= link_to 'Actividades', admin_activities_path %></li>
-			<% if User.find(session[:user_id]).has_role?('admin') %>
+			<% if @user_logged.has_role?('admin') %>
 				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
 			<% end %>
 	</ul>
@@ -26,7 +26,7 @@
 <div class="course-form">
 	<%= error_messages_for :user %>
 		
-	<% form_for :user_project, :url => { :action => :save_user_proj, :id => @user.id } do |form| %>
+	<% form_for :user, :url => { :action => :save_user_proj, :id => @user.id } do |form| %>
 		<table class="form_setting">
 			<tr>
 				<th>
@@ -45,7 +45,7 @@
 						<% for x in @projects %>
 							<li>
 								<%= x.name %>
-								<% if @user_admin.has_role?('admin') %>
+								<% if @user_logged.has_role?('admin') %>
 									<span class="act_desc">
 										<%= link_to image_tag('/images/delete.gif'), :action => "delete_proj", 
 																					 :id1 => @user.id, 
@@ -58,14 +58,14 @@
 					</ul>
 				</td>
 			</tr>
-			<% if @user_admin.has_role?('admin') %>
+			<% if @user_logged.has_role?('admin') %>
 				<tr>
 					<th>
 						<label>Seleccione un proyecto</label>
 					</th>
 					<td>
-						<%= form.select :project_id,
-						 				Project.find(:all).collect {|p| [ p.name, p.id ] },
+						<%= form.select :projects,
+						 				@all_projects.collect {|p| [ p.name, p.id ] },
 										:prompt => "Selecciona un proyecto",
 				    					:selected => nil
 						 %>
@@ -74,7 +74,7 @@
 			<% end %>
 		</table>
 		
-		<% if @user_admin.has_role?('admin') %>
+		<% if @user_logged.has_role?('admin') %>
 			<p class="btns">
 				<%= form.submit "Guardar" %>
 			</p>

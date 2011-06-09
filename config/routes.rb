@@ -12,7 +12,9 @@ ActionController::Routing::Routes.draw do |map|
 
   map.connect 'admin/permissions', :controller => 'admin/users', :action => :permissions
   map.connect 'admin/permissions_jp', :controller => 'admin/users', :action => :permissions_jp
+
   map.connect 'tasks/:day/:month/:year', :controller => :tasks, :action => :show
+  map.connect 'tasks/:day/:month/:year/edit', :controller => :tasks, :action => :edit
 
   map.resources :tasks
   map.resources :users
@@ -28,7 +30,9 @@ ActionController::Routing::Routes.draw do |map|
     admin.resources :users do |u|
       u.resources :projects
     end
-    admin.resources :projects
+    admin.resources :projects do |p|
+      p.resources :activities
+    end
     admin.resources :users
     admin.resources :activities
   end

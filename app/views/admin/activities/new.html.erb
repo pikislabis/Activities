@@ -1,8 +1,8 @@
 <% content_for (:activity_nav) do %>
 	<ul>
-			<li><%= link_to 'Usuarios', :controller => 'users', :action => 'list' %></li>
-			<li><%= link_to 'Proyectos', :controller => 'projects', :action => 'index' %></li>
-			<li class='selected'><%= link_to 'Actividades', :controller => 'activities', :action => 'index' %></li>
+			<li><%= link_to 'Usuarios', admin_users_path %></li>
+		    <li><%= link_to 'Proyectos', admin_projects_path %></li>
+		    <li class="selected"><%= link_to 'Actividades', admin_activities_path %></li>
 			<% if User.find(session[:user_id]).has_role?('admin') %>
 				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
 			<% end %>
@@ -16,8 +16,8 @@
 <% end %>
 
 <div class="top">
-	<% if @proj != 0 %>
-		<h3>Nueva actividad para <%= Project.find(@proj).name %></h3>
+	<% if !@project.nil? %>
+		<h3>Nueva actividad para <%= @project.name %></h3>
 	<% end %>
 </div>
 
@@ -25,7 +25,7 @@
 
 	<%= error_messages_for :user %>
 
-	<% form_for(@activity) do |f| %>
+	<% form_for @activity, :url => admin_activities_path(@activity) do |f| %>
 	
 		<table class="form_setting">
 			<tr>
@@ -44,21 +44,21 @@
 					<%= f.text_area :description, :rows => 6 %>
 				</td>
 			</tr>
-			<% if @proj == 0 %>
+			<% if @project.nil? %>
 				<tr>
 					<th>
 						<label>Proyecto</label>
 					</th>
 					<td>
 						<%= f.select :project_id,
-							@projs.collect{|proj| [proj.name, proj.id]},
+							@projects.collect{|proj| [proj.name, proj.id]},
 		    				:prompt => "Selecciona un proyecto",
 		    				:selected => nil
 						%>
 					</td>
 				</tr>
 			<% else %>
-	  			<%= f.hidden_field :project_id, :value => @proj.to_i %>
+	  			<%= f.hidden_field :project_id, :value => @project.id %>
 	  		<% end %>
 	  	</table>
 	  	<p class="btns">

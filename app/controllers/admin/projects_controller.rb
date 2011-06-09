@@ -30,16 +30,13 @@ class Admin::ProjectsController < ApplicationController
   end
 
   def show
-		@user = User.find(session[:user_id])
 		@project = Project.find(params[:id])
-		if @user.has_role?('admin')
-			@users = User.find(:all).select { |u| u.has_role?('super_user') }
-		end
-		if !@project.belong_to_user(@user) and !@user.has_role?('admin')
-			flash[:error] = "No tiene permisos para esta acción."
-			redirect_to(:action => 'index')
-			return
-		end
+    if @user_logged.has_role?('admin')
+      @users = User.find(:all).select { |u| u.has_role?('super_user') }
+    elsif !@user_logged.own_projects.include? @project
+        flash[:error] = "No tiene permisos para esta acción."
+        redirect_to :back
+    end
   end
 
   def destroy

@@ -2,43 +2,49 @@ class Admin::ActivitiesController < ApplicationController
 
   require_role "super_user"
 
+  before_filter :user_logged
+  
   def index
-		@user = User.find(session[:user_id])
-		if @user.has_role?('admin')
-			@activities = Activity.find(:all).paginate(:page => params[:page], :per_page => 6)
-		elsif @user.has_role?('super_user')
-			@activities = Project.find(:all, :conditions => {:user_id => session[:user_id]}).activities.paginate(:page => params[:page], :per_page => 6)
+    if !params[:project_id].nil?
+      @project = Project.find(params[:project_id])
+    end
+		if @user_logged.has_role?('admin') and !@project.nil?
+			@activities = @project.activities.paginate(:page => params[:page], :per_page => 6)
+    elsif @user_logged.has_role?('admin')
+      @activities = Activity.find(:all).paginate(:page => params[:page], :per_page => 6)
+    elsif @user_logged.has_role?('super_user') and !@project.nil? and @user_logged.own_projects.include? @project
+      @activities = @project.activities.paginate(:page => params[:page], :per_page => 6)
+    elsif @user_logged.has_role?('super_user') and !@project.nil? and !@user_logged.own_projects.include? @project
+      flash[:error] = 'No tiene privilegios para esta acción.'
+      redirect_to :back
+    else
+			@activities = @user_logged.own_projects.map{|p| p.activities}.paginate(:page => params[:page], :per_page => 6)
 		end
   end
 
   def show
-		@user = User.find(session[:user_id])
-		if correct_user(@user, params[:id])
+		if correct_user(@user_logged, params[:id])
 			begin
 				@activity = Activity.find(params[:id])
 			rescue ActiveRecord::RecordNotFound
 				flash[:error]="Actividad incorrecta."
-				redirect_to (:action => :index)
+				redirect_to(:action => :index)
 			end
 		else
 			flash[:error] = "Actividad incorrecta."
-			redirect_to (:action => :index)
+			redirect_to(:action => :index)
 		end
 	end
 
   def new
-		@user = User.find(session[:user_id])
-		if params[:proj_id].nil?
-			@proj = 0
-		else
-			@proj = params[:proj_id]
+		if !params[:project_id].nil?
+			@project = Project.find(params[:project_id])
 		end
-		if @user.has_role?('admin')
-			@projs = Project.find(:all)
-		elsif @user.has_role?('super_user')
-			@projs = Project.find(:all, :conditions => {:user_id => @user.id})
-			if @projs.length == 1			# Si solo hay un proyecto, se selecciona automaticamente
-				@proj = @projs[0].id 		# para añadir la actividad
+		if @user_logged.has_role?('admin') and @project.nil?
+			@projects = Project.find(:all)
+		elsif @project.nil?
+			@projects = @user_logged.own_projects
+			if @projects.length == 1
 			end
 		end
 		@activity = Activity.new
@@ -46,10 +52,9 @@ class Admin::ActivitiesController < ApplicationController
 
   def create
 		@activity = Activity.new(params[:activity])
-
-	  if @activity.save
+    if @activity.save
     	flash[:notice] = "La actividad #{@activity.id} ha sido creado satisfactoriamente."
-      redirect_to(admin_activity_path(@activity))
+      redirect_to admin_activity_path(@activity)
     else
       render :action => "new"
     end
@@ -71,7 +76,12 @@ class Admin::ActivitiesController < ApplicationController
     redirect_to(admin_activities_path)
   end
 
-	protected
+  private
+  def user_logged
+    @user_logged = User.find(session[:user_id])
+  end
+
+  protected
 
 	# devuelve los id de todas las actividades de los proyectos de los que un usuario es
 	# jefe de proyecto

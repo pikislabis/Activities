@@ -19,6 +19,20 @@ class Admin::UsersController < ApplicationController
 
   end
 
+  def show
+  	begin
+    	@user = User.find(params[:id])
+    rescue ActiveRecord::RecordNotFound
+			flash[:error] = "Usuario incorrecto"
+			redirect_to :action => :index
+			return
+		end
+		if !@user_logged.own_projects.map{|p| p.users}.include? @user and @user_logged != @user
+			flash[:error] = "No tiene permisos para esta acción."
+			redirect_to root_path
+		end
+	end
+
   def new
     @user = User.new
     @user.roles.build
@@ -70,14 +84,24 @@ class Admin::UsersController < ApplicationController
   # Muestra los proyectos a los que está adscrito un usuario
 	def edit_proj
 		@user = User.find(params[:id])
-		@user_admin = User.find(session[:user_id])
-		if !@user_admin.belong_to_own_project(@user)
+		if @user_logged.own_projects.map{|p| p.users}.include? @user
 			flash[:error] = "No tiene permisos para esta accion."
 			redirect_to :action => :index
 		else
-			@projects = UserProject.find(:all,
-								:conditions => {:user_id => @user.id}).collect{|x| Project.find(x.project_id)}
+			@projects = @user_logged.projects
+      @all_projects = Project.find(:all) - @projects
 		end
+  end
+
+  # Asigna un usuario a un proyecto
+	def save_user_proj
+
+    @user = User.find(params[:id])
+    @project = Project.find(params[:user][:projects])
+
+    @user.projects << @project
+
+		redirect_to(:action => "edit_proj", :id => @user.id )
 	end
 
   private

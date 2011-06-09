@@ -19,6 +19,9 @@
 	<h2>No existe ninguna actividad.</h2>
 
 <% else %>
+    <% if !@project.nil? %>
+       <h3> <%= @project.name %> </h3>
+    <% end %>
 	<ul class="users_list">
 		<% for act in @activities %>
 			<li>
@@ -33,7 +36,7 @@
 					<span class="help"><%= act.description %></span>
 				</label>
 				<div class="user_name">
-					<%= Project.find(act.project_id).name %>
+					<%= act.project.name %>
 				</div>
 			</li>
 		<% end %>

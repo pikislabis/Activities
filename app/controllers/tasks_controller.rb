@@ -1,6 +1,6 @@
 class TasksController < ApplicationController
 
-  before_filter :values
+  before_filter :values, :user_logged
 
   require_role "super_user", :for_all_except => [:index, :show, :edit]
 
@@ -43,6 +43,7 @@ class TasksController < ApplicationController
   def show
     @user = User.find(session[:user_id])
 
+=begin
     if params[:project].nil?
   			if params[:activity].nil?
     			@project = Project.find(session[:current_project_id])
@@ -59,6 +60,7 @@ class TasksController < ApplicationController
   			session[:current_project_id] = @project.id
   			session[:current_activity_id] = @activity.id
   	end
+=end
 
 		# Actividades con tareas ejecutadas
 
@@ -75,16 +77,8 @@ class TasksController < ApplicationController
 
 
   def edit
-		@user = User.find(session[:user_id])
-		if (params[:current_date].nil? and session[:current_date].nil?)
-			session[:current_date] = Date.today
-		else
-			if !params[:current_date].nil?
-				session[:current_date] = params[:current_date]
-				@hide = 1
-			end
-		end
-		@current_date = session[:current_date]
+
+    @current_date = Date.civil(params[:year].to_i, params[:month].to_i, params[:day].to_i)
 
 		if params[:id] == "remote_function"
 			@hide = 0
@@ -119,6 +113,8 @@ class TasksController < ApplicationController
   		end
 		end
 
+    @projects = @user_logged.projects
+
 		# Actividades con tareas ejecutadas
 
 		@activities = Activity.get_activities_tasks(@user, @current_date)
@@ -129,10 +125,12 @@ class TasksController < ApplicationController
 		@validated = TasksValidated.find(:first, :conditions => {:user_id => session[:user_id],
 															 :week => session[:current_date].to_date.strftime("%W"),
 															 :year => session[:current_date].to_date.year})
-		render(:layout => false)
 	end
 
   private
+  def user_logged
+    @user_logged = User.find(session[:user_id])
+  end
 
     def values
 		@freq_type = ["Una vez", "Diaria", "Semanal", "Mensual"]
