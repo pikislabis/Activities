@@ -3,11 +3,11 @@
 		<td></td>
 		<td>Proyecto</td>
 		<td>Actividad</td>
-		<td>Lunes <%= @days[0]%></td>
-		<td>Martes <%= @days[1]%></td>
-		<td>Miercoles <%= @days[2]%></td>
-		<td>Jueves <%= @days[3]%></td>
-		<td>Viernes <%= @days[4]%></td>
+		<td>Lunes <%= @days[0].day %></td>
+		<td>Martes <%= @days[1].day %></td>
+		<td>Miercoles <%= @days[2].day %></td>
+		<td>Jueves <%= @days[3].day %></td>
+		<td>Viernes <%= @days[4].day %></td>
 	</tr>
 	<% if @activities.blank? %>
 	<tr>
@@ -17,20 +17,19 @@
 	</tr>
 	<% else %>
 		<% @totals = [0, 0, 0, 0, 0] %>
-		<% for x in (0..@activities.length - 1) %>
+		<% for activity in @activities %>
 			<tr>
-				<% @unit_activity = Activity.find(@activities[x].to_i) %>
-				<% if (@validated.nil? or @validated.validated == 0) and (session[:user_id] == user) %>
-					<td><%= check_box_tag "tasks[#{@unit_activity.id}]", "1" %></td>
+				<% if (@validated.nil? or @validated.validated == 0) and (@user_logged.id == user) %>
+					<td><%= check_box_tag "tasks[#{activity.id}]", "1" %></td>
 				<% else %>
 					<td></td>
 				<% end %>
-				<td><%= Project.find(@unit_activity.project_id).name %></td>
-				<td><%= @unit_activity.name %></td>
+				<td><%= activity.project.name %></td>
+				<td><%= activity.name %></td>
 				<% for z in (0..4)%>
 					<% @task = Task.find(:first, :conditions => {:user_id => user,	
-										:activity_id => @unit_activity.id,
-										:date =>  session[:current_date].to_date.monday + z})
+										:activity_id => activity.id,
+										:date =>  @current_date.monday + z})
 					%>
 					<td>
 						<% if !@task.nil? %>
@@ -39,25 +38,30 @@
 						<% end %>
 					</td>
 				<% end %>
-				<% if (@validated.nil? or @validated.validated == 0) and (session[:user_id] == user) %>
+				<% if (@validated.nil? or @validated.validated == 0) and @user_logged.id == user %>
 					<td>
 						<%= link_to_remote image_tag('/images/edit.gif'), :update => "table_tasks", 
-															:url => {:action => :modify_table_tasks, 
-															:id => "remote_function",
-															:activity => @unit_activity.id } 
+															:url => {:action => :edit,
+                                                            :current_date => @current_date,
+															:activity => activity.id}
 						%>
 					</td>
 					<td>
-						<%= link_to image_tag('/images/delete.gif'), {:action => :delete_tasks, 
-															:id => @unit_activity.id},
-															:confirm => "¿Está seguro de querer eliminar las tareas?"
+                        <%= link_to image_tag('/images/delete.gif'), {:controller => :tasks,
+                                                            :day => @current_date.day,
+                                                            :month => @current_date.month,
+                                                            :year => @current_date.year,
+                                                            :action => :delete,
+															:activity => activity.id},
+                                                            :method => :delete,
+															:confirm => "¿Está seguro de querer eliminar la tarea?"
 						%>
 					</td>
 				<% end %>
 			</tr>
 		<% end %>
 			<tr class="total">
-				<% if (@validated.nil? or @validated.validated == 0) and (session[:user_id] == user) %>
+				<% if (@validated.nil? or @validated.validated == 0) and @user_logged.id == user %>
 					<td class="arrow">
 						<%= image_tag ('/images/arrow.png')%>
 					</td>
@@ -79,10 +83,12 @@
 			</tr>
 	<% end %>
 </table>
-<% if ((@validated.nil? or @validated.validated == 0) and ((controller.action_name == "edit_tasks") or
-														  (controller.action_name == "modify_table_tasks"))) %>
+<% if (@validated.nil? or @validated.validated == 0) and (controller.action_name == "show") %>
 	<p class="hide_view center">
-		<%= link_to "Validar", {:action => :validated}, :confirm => "¿Está seguro de querer validar esta semana?" %>
+		<%= link_to "Validar", {:day => @current_date.day,
+                                :month => @current_date.month,
+                                :year => @current_date.year,
+                                :action => :validate}, :confirm => "¿Está seguro de querer validar esta semana?" %>
 	</p>
 <% elsif (@validated.nil? or @validated.validated == 0) %>
 	<p class= "hide_view center2">
@@ -90,10 +96,10 @@
 	</p>
 <% elsif  !@validated.nil? and @validated.validated != 0 %>
 	<div id="image_link">
-		<%= link_to(image_tag("pdf.jpg"),
-						:action => "pdf_tasks", 
-						:id => user, 
-						:date => session[:current_date].to_date.monday)
+		<%= link_to image_tag("pdf.jpg"), {:day => @current_date.day,
+                                           :month => @current_date.month,
+                                           :year => @current_date.year,
+                                           :action => :pdf}
 		%>
 	</div>
 <% end %>

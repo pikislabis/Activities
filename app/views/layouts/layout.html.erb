@@ -10,8 +10,12 @@
 	</ul>
 	<h1><%= link_to User.find(session[:user_id]).name, root_path %></h1>
 	<div id="nav" class="clear">
+    <% @current_date = Date.today.monday %>
 		<ul>
-			<li><%= link_to 'Actividades', tasks_path %></li>
+			<li><%= link_to 'Actividades', {:day => @current_date.day,
+                                            :month => @current_date.month,
+                                            :year => @current_date.year,
+                                            :action => :show} %></li>
 			<li><%= link_to 'Gastos', :controller => "/users", :action => 'view_spendings', :id => session[:user_id] %></li>
 			<li><%= link_to 'Alertas', :controller => "/users", :action => 'view_alerts', :id => session[:user_id]%></li>
 			<li><%= link_to 'Incidencias', :controller => "/incidences", :action => 'index' %></li>

@@ -1,6 +1,6 @@
 ActionController::Routing::Routes.draw do |map|
 
-  map.root :controller => 'users', :action => 'index'
+  map.root :controller => 'tasks', :action => 'index'
 
 	map.activate '/activate/:activation_code', :controller => 'users', 
 																						 :action => 'activate', :activation_code => nil
@@ -14,7 +14,10 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'admin/permissions_jp', :controller => 'admin/users', :action => :permissions_jp
 
   map.connect 'tasks/:day/:month/:year', :controller => :tasks, :action => :show
-  map.connect 'tasks/:day/:month/:year/edit', :controller => :tasks, :action => :edit
+  map.connect 'tasks/:day/:month/:year/edit', :controller => :tasks, :action => :show
+  map.connect 'tasks/:day/:month/:year/delete', :controller => :tasks, :action => :delete
+  map.connect 'tasks/:day/:month/:year/validate', :controller => :tasks, :action => :validate
+  map.connect 'tasks/:day/:month/:year/pdf', :controller => :tasks, :action => :pdf
 
   map.resources :tasks
   map.resources :users

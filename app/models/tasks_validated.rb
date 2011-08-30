@@ -2,49 +2,34 @@ class TasksValidated < ActiveRecord::Base
 	belongs_to :user
 
 	def self.find_first(user)
-		first_task = TasksValidated.find_by_sql("SELECT * FROM `tasks_validateds` 
-															WHERE `user_id` = #{user.id} AND 
-    	 												`week` <= ALL (SELECT `week` FROM `tasks_validateds` WHERE
-    	 												`user_id` = #{user.id} AND 
-																`year` <= ALL (SELECT `year` FROM `tasks_validateds` WHERE
-																`user_id` = #{user.id}) )").first
+		first_task = TasksValidated.find(:first, :conditions => {:user_id => user.id}, :order => 'week, year ASC' )
 
-    if first_task.nil?
-		  first_week = DateTime.civil(Time.current.year,1,1,0,0,0)
-    else
-      first_week = DateTime.civil(first_task.year,1,1,0,0,0).advance(:days => first_task.week * 7 - 1)
-    end
-    first_week
+    first_week_day = (Date.civil(Time.current.year, 1, 1).cweek == 0 ? Date.civil(Time.current.year, 1, 1).monday + 7 : Date.civil(Time.current.year, 1, 1).monday)
+
+    first_task.nil? ? first_week_day : first_week_day + (first_task.week - 1) * 7
+
 	end
+
 
 	def self.all_not_validated(user)
 
-		first_week = TasksValidated.find_first(user)
+		date = TasksValidated.find_first(user)
 		tasks_not_validated = Array.new
 
-		y = 0
-    x = 0
-
-    while (y == 0) do
-    		
-  		date = first_week.to_date + x
+    while (date < Date.today.monday) do
   		
-  		validated = TasksValidated.find(:first, :conditions => { :user_id => user.id,
-  																	:week => date.to_date.strftime("%W"),
-  																	:year => date.to_date.year})
+  		validated = TasksValidated.find(:first, :conditions => {:user_id => user.id, :week => date.cweek, :year => date.year})
 
 			# Si no esta en la tabla o no esta validada, la incluimos
   		if (validated.nil? or (validated.validated == 0))
-  			tasks_not_validated << date.to_date
+  			tasks_not_validated << date
   		end
   		
-			# Si ya hemos llegado a la semana actual, terminamos
-  		if (Time.now.at_beginning_of_week.to_date - date.to_date) < 1
-  			y = 1
-  		end
-			# Para calcular la semana siguiente
-  		x += 7
-  	end
+			date += 7
+
+    end
+
 		tasks_not_validated
-	end
+
+  end
 end

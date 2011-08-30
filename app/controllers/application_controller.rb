@@ -51,16 +51,20 @@ class ApplicationController < ActionController::Base
     # Devuelve un array con los dias (numero) de la semana a la que pertenece la fecha que se pasa
 	  # por parametro
 	  def days_of_week(date)
-  	  days = Array.new
+
+      days = Array.new
 
 		  for x in (0..4)
-			  @date_aux = date.monday.day + x
-			  if(@date_aux > Time.days_in_month(date.monday.mon,date.monday.year))
-				  @date_aux -= Time.days_in_month(date.monday.mon,date.monday.year)
-			  end
-			  days << @date_aux
+			  days << date.monday + x
 		  end
 		  days
+    end
+
+    # Funcion que resume un texto cuando la longitud es mayor que length, y le añade truncate_string
+	  # al final
+	  def truncate(text, length, truncate_string)
+  	  l = length - truncate_string.size
+      text.length > length ? text[0...l] + truncate_string : text
 	  end
 		
 end
