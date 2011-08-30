@@ -1,6 +1,7 @@
 class Admin::UsersController < ApplicationController
 
   require_role 'super_user'
+  require_role "admin", :only => [:edit, :update]
 
   before_filter :user_logged
   
@@ -27,9 +28,9 @@ class Admin::UsersController < ApplicationController
 			redirect_to :action => :index
 			return
 		end
-		if !@user_logged.own_projects.map{|p| p.users}.include? @user and @user_logged != @user
+		if !@user_logged.own_projects.map{|p| p.users}.include? @user and @user_logged != @user and !@user_logged.has_role?('admin')
 			flash[:error] = "No tiene permisos para esta acción."
-			redirect_to root_path
+			redirect_to admin_path
 		end
 	end
 
@@ -60,6 +61,22 @@ class Admin::UsersController < ApplicationController
 	  end
 	end
 
+  def edit
+    @user = User.find(params[:id])
+  end
+  
+  def update
+    params[:user][:project_ids] ||= []
+		@user = User.find(params[:id])
+		if @user.update_attributes(params[:user])
+	  	flash[:notice] = "El usuario #{@user.name} ha sido actualizado satisfactoriamente."
+	    redirect_to admin_user_path(@user)
+	  else
+			flash[:error] = "Ha ocurrido un error"
+	  	render :action => "edit"
+	  end
+ 	end
+
   def permissions
     @users = Role.find_by_name("admin").users
     @users2 = User.find(:all).select {|u| !u.has_role?("admin")}
@@ -88,21 +105,11 @@ class Admin::UsersController < ApplicationController
 			flash[:error] = "No tiene permisos para esta accion."
 			redirect_to :action => :index
 		else
-			@projects = @user_logged.projects
-      @all_projects = Project.find(:all) - @projects
+			@projects = @user.projects
+      #@all_projects = Project.find(:all) - @projects
+      @all_projects = Project.find(:all)
 		end
   end
-
-  # Asigna un usuario a un proyecto
-	def save_user_proj
-
-    @user = User.find(params[:id])
-    @project = Project.find(params[:user][:projects])
-
-    @user.projects << @project
-
-		redirect_to(:action => "edit_proj", :id => @user.id )
-	end
 
   private
   def user_logged

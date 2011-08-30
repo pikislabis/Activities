@@ -26,7 +26,7 @@
 <div class="course-form">
 	<%= error_messages_for :user %>
 		
-	<% form_for :user, :url => { :action => :save_user_proj, :id => @user.id } do |form| %>
+	<% form_for :user, :url => admin_user_path(@user), :html => {:method => :put} do |form| %>
 		<table class="form_setting">
 			<tr>
 				<th>
@@ -37,47 +37,21 @@
 				</td>
 			</tr>
 			<tr>
-				<th>
-					<label>Proyectos</label>
-				</th>
+				<th><label>Proyectos</label></th>
 				<td>
 					<ul>
-						<% for x in @projects %>
+						<% @all_projects.each do |p| %>
 							<li>
-								<%= x.name %>
-								<% if @user_logged.has_role?('admin') %>
-									<span class="act_desc">
-										<%= link_to image_tag('/images/delete.gif'), :action => "delete_proj", 
-																					 :id1 => @user.id, 
-																					 :id2 => x.id
-										%>
-									</span>
-								<% end %> 
+								<%= check_box_tag "user[project_ids][]", p.id, @user.projects.include?(p) %>
+								<%= p.name %>
 							</li>
 						<% end %>
-					</ul>
-				</td>
+					</ul>	
+				</td>	
 			</tr>
-			<% if @user_logged.has_role?('admin') %>
-				<tr>
-					<th>
-						<label>Seleccione un proyecto</label>
-					</th>
-					<td>
-						<%= form.select :projects,
-						 				@all_projects.collect {|p| [ p.name, p.id ] },
-										:prompt => "Selecciona un proyecto",
-				    					:selected => nil
-						 %>
-					</td>	
-				</tr>
-			<% end %>
 		</table>
-		
-		<% if @user_logged.has_role?('admin') %>
-			<p class="btns">
-				<%= form.submit "Guardar" %>
-			</p>
-		<% end %>
+		<p class="btns">
+			<%= submit_tag 'Actualizar', :class => "submit" %>
+		</p>
 	<% end %>
 </div>
