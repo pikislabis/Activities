@@ -13,7 +13,7 @@ class PasswordMailer < ActionMailer::Base
   protected
   
   def setup_email(user)
-    @recipients = "#{user.email_corp}"
+    @recipients = "#{user.email}"
     @from = "#{APP_CONFIG[:admin_email]}"
     @subject = "Agaex. "
     @sent_on = Time.now

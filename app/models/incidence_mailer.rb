@@ -15,7 +15,7 @@ class IncidenceMailer < ActionMailer::Base
 
 	def receive(email)
 		incidence = Incidence.new
-		incidence.user_id = User.find(:first, :conditions => {:email_corp => email.from[0]}).id
+		incidence.user_id = User.find(:first, :conditions => {:email => email.from[0]}).id
 		incidence.origin = 1
 		incidence.state = "creada"
 		incidence.priority = "media"
@@ -69,7 +69,7 @@ class IncidenceMailer < ActionMailer::Base
   protected
   
   def setup_email(user_id)
-    @recipients = "#{User.find(user_id).email_corp}"
+    @recipients = "#{User.find(user_id).email}"
     @from = "#{APP_CONFIG[:admin_email]}"
     @subject = "Agaex. "
     @sent_on = Time.now

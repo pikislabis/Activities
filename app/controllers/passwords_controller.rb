@@ -14,7 +14,7 @@ class PasswordsController < ApplicationController
 
   def create
     @password = Password.new(params[:password])
-    @password.user = User.find(:first, :conditions => {:email_corp => @password.email})
+    @password.user = User.find(:first, :conditions => {:email => @password.email})
     
     if @password.save
 			# Se envia un email para el cambio de contraseña

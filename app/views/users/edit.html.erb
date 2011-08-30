@@ -23,13 +23,13 @@
 			
 				<tr>
 					<th>
-						<label for="email_corp">E-mail corporativo</label>
+						<label for="email">E-mail corporativo</label>
 					</th>
 					<td>
 						<% if @current_user.has_role?("admin") %>
-							<%= f.text_field :email_corp %>
+							<%= f.text_field :email %>
 						<% else %>
-			  				<%= f.text_field :email_corp, :disabled => 'disabled' %>
+			  				<%= f.text_field :email, :disabled => 'disabled' %>
 						<% end %>
 					</td>
 			  	</tr>

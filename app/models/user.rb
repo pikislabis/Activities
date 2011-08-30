@@ -46,9 +46,9 @@ class User < ActiveRecord::Base
 	
 	validates_presence_of :name
 	validates_uniqueness_of :name,
-							:message => ': El nick solicitado ya esta en uso'
+							:message => ': El nombre solicitado ya esta en uso'
 	
-	validates_format_of :email_corp, 
+	validates_format_of :email, 
 	              :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i,
 	              :message => 'debe ser una direccion correcta.'
   
