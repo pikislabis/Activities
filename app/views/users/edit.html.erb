@@ -13,24 +13,16 @@
 						<label for="long_name">Nombre</label>
 					</th>
 					<td>
-						<% if @current_user.has_role?("admin") %>
-							<%= f.text_field :long_name, :size => 30 %>
-					    <% else %>
-							<%= f.text_field :long_name,  :size => 30, :disabled => 'disabled' %>
-						<% end %>
+						<%= f.text_field :long_name, :size => 30 %>
 					</td>
 			  	</tr>
 			
 				<tr>
 					<th>
-						<label for="email">E-mail corporativo</label>
+						<label for="email">E-mail</label>
 					</th>
 					<td>
-						<% if @current_user.has_role?("admin") %>
-							<%= f.text_field :email %>
-						<% else %>
-			  				<%= f.text_field :email, :disabled => 'disabled' %>
-						<% end %>
+						<%= f.text_field :email %>
 					</td>
 			  	</tr>
 			
@@ -39,12 +31,7 @@
 						<label for="name">Usuario</label>
 				  	</th>
 				  	<td>
-				  		<p class="hint">Nombre con el que se identifica en la aplicación.</p>	
-						<% if @current_user.has_role?("admin") %>
-							<%= f.text_field :name, :size => 10 %>
-						<% else %>
-				  			<%= f.text_field :name, :size => 10, :disabled => 'disabled' %>
-						<% end %>
+				  		<%= f.text_field :name, :size => 10, :disabled => 'disabled' %>
 					</td>
 				</tr>
 				
