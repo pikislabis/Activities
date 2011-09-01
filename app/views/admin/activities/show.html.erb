@@ -3,9 +3,11 @@
 			<li><%= link_to 'Usuarios', admin_users_path %></li>
 			<li><%= link_to 'Proyectos', admin_projects_path %></li>
 			<li class="selected"><%= link_to 'Actividades', admin_activities_path %></li>
-			<% if @user_logged.has_role?('admin') %>
-				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
-			<% end %>
+	</ul>
+<% end %>
+<% content_for (:action_nav) do %>
+	<ul>
+		<li><%= link_to 'Nueva actividad', new_admin_activity_path %></li>
 	</ul>
 <% end %>
 
@@ -35,7 +37,7 @@
 				<label>Proyecto</label>
 			</th>
 			<td>
-				<%= @activity.project.name %>
+				<%= link_to @activity.project.name, admin_activity_path(@activity) %>
 			</td>
 		</tr>
 	</table>

@@ -3,16 +3,11 @@
 			<li class="selected"><%= link_to 'Usuarios', admin_users_path %></li>
 			<li><%= link_to 'Proyectos', admin_projects_path %></li>
 			<li><%= link_to 'Actividades', admin_activities_path %></li>
-			<% if @user_logged.has_role?('admin') %>
-				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
-			<% end %>
 	</ul>
 <% end %>
 <%content_for (:action_nav) do %>
 	<ul>
-		<li class = "selected2">
-			<%= link_to 'Perfil', admin_user_path(@user) %>
-		</li>
+		<li class = "selected2"><%= link_to 'Perfil', admin_user_path(@user) %></li>
 		<li><%= link_to 'Proyectos', :controller => 'users', :action => 'edit_proj', :id => @user.id %></li>
 		<li><%= link_to 'Hoja actividades', :controller => 'users', :action => 'view_tasks', :id => @user.id %></li>
 		<li><%= link_to 'Hoja gastos', :controller => 'users', :action => 'view_spendings', :id => @user.id %></li>
@@ -25,20 +20,27 @@
 <div class="course-form">
 	<table class="form_setting">
 		<tr>
-			<th>
-				<label>Nombre</label>
-			</th> 
-			<td>
-				<%= @user.long_name %>
-			</td> 
+			<th><label>Nombre</label></th> 
+			<td><%= @user.long_name %></td> 
 		</tr>
 		<tr>
-			<th>
-				<label>E-mail</label>
-			<td>
-				<%= @user.email %>
-			</td>
+			<th><label>E-mail</label></th>
+			<td><%= @user.email %></td>
 		</tr>
+		<% if @user.has_role?('admin') or @user.has_role?('super_user') %>
+			<tr>
+				<th><label>Roles</label></th>
+				<td>
+					<ul>
+						<% @user.roles.each do |r| %>
+							<li>
+								<%= r.long_name %>
+							</li>
+						<% end %>
+					</ul>
+				</td>
+			</tr>
+		<% end %>
 	</table>
 	<% if @user_logged.has_role?('admin') %>
 		<p class="btns btns2">

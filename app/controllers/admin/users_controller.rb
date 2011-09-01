@@ -1,9 +1,10 @@
 class Admin::UsersController < ApplicationController
 
   require_role 'super_user'
-  require_role "admin", :only => [:edit, :update]
+  require_role "admin", :only => [:edit, :update, :destroy, :new, :update, :edit_proj]
 
   before_filter :user_logged
+  before_filter :find_user, :only => [:show, :edit_proj, :edit, :update, :destroy]
   
   def index
 		if @user_logged.has_role?('admin') and !params[:search].blank?
@@ -21,14 +22,7 @@ class Admin::UsersController < ApplicationController
   end
 
   def show
-  	begin
-    	@user = User.find(params[:id])
-    rescue ActiveRecord::RecordNotFound
-			flash[:error] = "Usuario incorrecto"
-			redirect_to :action => :index
-			return
-		end
-		if !@user_logged.own_projects.map{|p| p.users}.include? @user and @user_logged != @user and !@user_logged.has_role?('admin')
+  	if !@user_logged.own_projects.map{|p| p.users}.include? @user and !@user_logged.has_role?('admin')
 			flash[:error] = "No tiene permisos para esta acción."
 			redirect_to admin_path
 		end
@@ -62,12 +56,11 @@ class Admin::UsersController < ApplicationController
 	end
 
   def edit
-    @user = User.find(params[:id])
   end
   
   def update
     params[:user][:project_ids] ||= []
-		@user = User.find(params[:id])
+    params[:user][:role_ids] ||= []
 		if @user.update_attributes(params[:user])
 	  	flash[:notice] = "El usuario #{@user.name} ha sido actualizado satisfactoriamente."
 	    redirect_to admin_user_path(@user)
@@ -76,6 +69,16 @@ class Admin::UsersController < ApplicationController
 	  	render :action => "edit"
 	  end
  	end
+
+  def destroy
+		begin
+	  	@user.destroy
+	  	flash[:notice] ="El usuario #{@user.name} ha sido eliminado"
+	  rescue Exception => e
+	  	flash[:error] = e.message
+		end
+	  redirect_to admin_users_path
+	end
 
   def permissions
     @users = Role.find_by_name("admin").users
@@ -100,20 +103,16 @@ class Admin::UsersController < ApplicationController
 
   # Muestra los proyectos a los que está adscrito un usuario
 	def edit_proj
-		@user = User.find(params[:id])
-		if @user_logged.own_projects.map{|p| p.users}.include? @user
-			flash[:error] = "No tiene permisos para esta accion."
-			redirect_to :action => :index
-		else
-			@projects = @user.projects
-      #@all_projects = Project.find(:all) - @projects
-      @all_projects = Project.find(:all)
-		end
+	  @projects = Project.find(:all)
   end
 
-  private
-  def user_logged
-    @user_logged = User.find(session[:user_id])
-  end
+  protected
+    def user_logged
+      @user_logged = User.find(session[:user_id])
+    end
+    
+    def find_user
+      @user = User.find(params[:id])
+    end
 
 end

@@ -3,17 +3,12 @@
 			<li class="selected"><%= link_to 'Usuarios', admin_users_path %></li>
 			<li><%= link_to 'Proyectos', admin_projects_path %></li>
 			<li><%= link_to 'Actividades', admin_activities_path %></li>
-			<% if @user_logged.has_role?('admin') %>
-				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
-			<% end %>
 	</ul>
 <% end %>
 <%content_for (:action_nav) do %>
 	<ul>
 		<li><%= link_to 'Perfil', :controller => 'users', :action => 'show', :id => @user.id %></li>
-		<li class="selected2">
-			<%= link_to 'Proyectos', :controller => 'users', :action => 'edit_proj', :id => @user.id %>
-		</li>
+		<li class="selected2"><%= link_to 'Proyectos', :controller => 'users', :action => 'edit_proj', :id => @user.id %></li>
 		<li><%= link_to 'Hoja actividades', :controller => 'users', :action => 'view_tasks', :id => @user.id %></li>
 		<li><%= link_to 'Hoja gastos', :controller => 'users', :action => 'view_spendings', :id => @user.id %></li>
 	</ul>
@@ -40,7 +35,7 @@
 				<th><label>Proyectos</label></th>
 				<td>
 					<ul>
-						<% @all_projects.each do |p| %>
+						<% @projects.each do |p| %>
 							<li>
 								<%= check_box_tag "user[project_ids][]", p.id, @user.projects.include?(p) %>
 								<%= p.name %>

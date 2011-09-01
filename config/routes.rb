@@ -10,14 +10,12 @@ ActionController::Routing::Routes.draw do |map|
 	map.delete_alert 'delete_alert/:id', :controller => 'users', :action => 'delete_alert', :id => nil
 	map.logout '/logout', :controller => 'users', :action => 'logout'
 
-  map.connect 'admin/permissions', :controller => 'admin/users', :action => :permissions
-  map.connect 'admin/permissions_jp', :controller => 'admin/users', :action => :permissions_jp
-
   map.connect 'tasks/:day/:month/:year', :controller => :tasks, :action => :show
-  map.connect 'tasks/:day/:month/:year/edit', :controller => :tasks, :action => :show
   map.connect 'tasks/:day/:month/:year/delete', :controller => :tasks, :action => :delete
   map.connect 'tasks/:day/:month/:year/validate', :controller => :tasks, :action => :validate
   map.connect 'tasks/:day/:month/:year/pdf', :controller => :tasks, :action => :pdf
+
+  map.connect 'admin/users/:id/projects', :controller => 'admin/users', :action => :edit_proj
 
   map.resources :tasks
   map.resources :users

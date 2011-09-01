@@ -3,9 +3,6 @@
 			<li class="selected"><%= link_to 'Usuarios', admin_users_path %></li>
 			<li><%= link_to 'Proyectos', admin_projects_path %></li>
 			<li><%= link_to 'Actividades', admin_activities_path %></li>
-			<% if User.find(session[:user_id]).has_role?('admin') %>
-				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
-			<% end %>
 	</ul>
 <% end %>
 

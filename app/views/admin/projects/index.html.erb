@@ -3,9 +3,6 @@
 		<li><%= link_to 'Usuarios', admin_users_path %></li>
 		<li class="selected"><%= link_to 'Proyectos', admin_projects_path %></li>
 		<li><%= link_to 'Actividades', admin_activities_path %></li>
-		<% if User.find(session[:user_id]).has_role?('admin') %>
-			<li><%= link_to 'Permisos', :controller => 'admin/users', :action => 'permissions' %></li>
-		<% end %>
 	</ul>
 <% end %>
 <% if @user_logged.has_role?('admin') %>
@@ -28,7 +25,7 @@
 			   			<%= link_to project.name, admin_project_path(project) %>
 			   			<% if @user_logged.has_role?('admin') %>
 				   			<span class="act_desc">
-								<%= link_to image_tag('/images/delete.gif'), admin_project_path(project),
+								<%= link_to image_tag('/images/no_entry_2.png', :size => "12x12"), admin_project_path(project),
 														:method => :delete,
 														:confirm => '¿Está seguro de querer eliminar esta actividad?'
 								%>
