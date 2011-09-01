@@ -1,86 +1,92 @@
 class UsersController < ApplicationController
 
-	skip_before_filter :authorize, :only => [:login, :activate]
-	before_filter :values
-	
-	require_role "super_user", :for_all_except =>
-  											[:index, :view_spendings, :edit, :edit_tasks, :login, :logout, 
-													:modify_table_tasks, :modify_view_tasks, :create_tasks, 
-													:admin_sec, :activate, :modify_alert, :edit_alert, :new_alert,
-													:save_alert, :delete_alert,:view_alerts, :pdf_spendings, 
-													:pdf_tasks, :validated, :view_tasks, :modify_spending, :delete_all_tasks,
-													:save_spending]
-													
-	require_role "admin", :only => [:new, :destroy, :permissions, :permissions_jp, :mod_all, :delete_role]
-	
-	protect_from_forgery :only => [:update, :delete, :create]
-	
-	require 'pdf/writer'
+  require 'pdf/writer'
 	require 'pdf/simpletable' #requerido por pdf/writer
 	require 'iconv'							#convierte texto de una codificacion a otra.
 	require 'related_select_form_helper'	#crear select anidados.
 
+	skip_before_filter :authorize, :only => [:login, :activate]
+	before_filter :values
+	before_filter :find_user, :only => [:show, :edit, :update]
+	before_filter :user_logged, :for_all_except => [:login, :logout]
+
+	protect_from_forgery :only => [:update, :delete, :create]
+
+  # TODO Configurar el filtro :user_logged
+
 	# Muestra las semanas pendientes de validacion que tiene el usuario
-
-
 	def show
-  	@user = User.find(session[:user_id])
-  	begin
-    	@current_user = User.find(params[:id])
-    rescue ActiveRecord::RecordNotFound
-			flash[:error] = "Usuario incorrecto"
-			redirect_to :action => :index
-			return
-		end
-		if !@user.belong_to_own_project(@current_user)
+  	if !@user_logged.belong_to_own_project(@user)
 			flash[:error] = "No tiene permisos para esta accion."
 			redirect_to :action => :index
 		end
 	end
 
 	def edit
-		@user = User.find(params[:id])
-		@current_user = User.find(session[:user_id])
-		# Si la persona logueada es la misma que se quiere editar o es administrador
-		if !((@user.id == @current_user.id) or @current_user.has_role?("admin"))
+		if @user.id != @user_logged.id
 		  flash[:error] = "Acceso denegado."
 	    redirect_to(:action => "index")
     end
 	end
 
-	# Editar las semanas de las hojas de actividades
-	def edit_tasks
-		@user = User.find(session[:user_id])
-		# Proyectos a los que esta adscrito el usuario
-		@projects = @user.projects
-    if @projects.blank?
-      flash[:error] = "No está asociado a ningún proyecto."
-      redirect_to :action => :index and return false
+  def update
+		if @user.update_attributes(params[:user])
+	  	flash[:notice] = "Su perfil ha sido actualizado satisfactoriamente."
+	    redirect_to(:action => :index)
+	  else
+			flash[:error] = "Ha ocurrido un error."
+	  	render :action => "edit"
+	  end
+ 	end
+
+  def login
+    if !params[:name].nil?
+      reset_session
+      user = User.authenticate(params[:name], params[:password])
+
+      if user
+        session[:user_id] = user.id
+
+        if !user.projects.blank?
+          session[:current_project_id] = user.projects.first.id
+        end
+
+        uri = session[:original_uri]
+        session[:original_uri] = nil
+        redirect_to(uri || root_path)
+        return
+      else
+        flash[:error] = "Usuario y/o password incorrectos.\n
+            <a href = ../forgot_password>¿Olvidó su contraseña?</a>"
+      end
     end
 
-		# Si viene a traves de un enlace de la pagina principal index
-		if (params[:id1])
-			session[:current_date] = params[:id1].to_date
-		else
-			session[:current_date] = Date.today
-		end
-
-		@current_date = session[:current_date]
-
-		# Dias (numero) de la semana
-		@days = days_of_week(@current_date.to_date)
-		@project = Project.find(session[:current_project_id])
-		session[:current_activity_id] = @project.activities.first.id
-		
-		# Actividades de la semana con tareas
-		@activities = Activity.this_week_with_tasks(@user, @current_date)
-		
-		# Vemos si la semana está validada
-		@validated = TasksValidated.find(:first, :conditions => {:user_id => @user.id,
-													:week => @current_date.to_date.strftime("%W"),
-													:year => @current_date.to_date.year})
+		render(:layout => false)
 	end
-	
+
+	def logout
+		session[:user_id] = nil
+		session[:current_project_id] = nil
+		redirect_to(:action => "login")
+	end
+
+  # Activa un usuario nuevo
+	def activate
+	  user = User.find_by_activation_code(params[:activation_code]) unless 
+																																params[:activation_code].blank?
+	  case
+    when (!params[:activation_code].blank?) && user && !user.active?
+      user.activate!
+      flash[:notice] = "Alta completada. Por favor, identifiquese."
+      redirect_to(:action => :login)
+    when params[:activation_code].blank?
+      flash[:error] = "El codigo de activacion no existe. Por favor, siga el enlace de su email."
+      redirect_to(:action => :login)
+    else
+      flash[:error] = "No se encuentra un usuario con ese codigo. Es posible que ya esté activado."
+      redirect_to(:action => :login)
+    end
+	end
 
 	def view_tasks
 		# Usuario logueado
@@ -150,89 +156,6 @@ class UsersController < ApplicationController
     end
 	end
 
-	
-	def update
-		@user = User.find(params[:id])
-		if @user.update_attributes(params[:user])
-	  	flash[:notice] = "El usuario #{@user.name} ha sido actualizado satisfactoriamente."
-	    redirect_to(:action => :index)
-	  else
-			flash[:error] = "Ha ocurrido un error"
-	  	render :action => "edit"
-	  end
- 	end
-
-	def login
-    if !params[:name].nil?
-
-      reset_session
-      user = User.authenticate(params[:name], params[:password])
-
-      if user
-        session[:user_id] = user.id
-        session[:current_date] = Date.today
-        @current_date = session[:current_date]
-        $proj = 0
-
-        if !user.projects.blank?
-          session[:current_project_id] = user.projects.first.id
-        end
-
-        uri = session[:original_uri]
-        session[:original_uri] = nil
-        redirect_to(uri || root_path)
-        return
-      else
-        flash[:error] = "Usuario y/o password incorrectos.\n
-            <a href = ../forgot_password>¿Olvidó su contraseña?</a>"
-      end
-    end
-
-		render(:layout => false)
-	end
-
-	
-	def logout
-		session[:user_id] = nil
-		session[:current_project_id] = nil
-		redirect_to(:action => "login")
-	end
-
-	# Activa un usuario nuevo
-	def activate
-	  user = User.find_by_activation_code(params[:activation_code]) unless 
-																																params[:activation_code].blank?
-	  case
-    when (!params[:activation_code].blank?) && user && !user.active?
-      user.activate!
-      flash[:notice] = "Alta completada. Por favor, identifiquese."
-      redirect_to(:action => :login)
-    when params[:activation_code].blank?
-      flash[:error] = "El codigo de activacion no existe. Por favor, siga el enlace de su email."
-      redirect_to(:action => :login)
-    else
-      flash[:error] = "No se encuentra un usuario con ese codigo. Es posible que ya esté activado."
-      redirect_to(:action => :login)
-    end
-	end
-	
-	# Asigna un usuario a un proyecto
-	def save_user_proj
-		@user = User.find(params[:id])
-		@user_proj = UserProject.new(params[:user_project])
-		@user_proj.user = @user
-	  
-		begin
-	  	@user_proj.save
-	  rescue ActiveRecord::StatementInvalid
-		  flash[:error] = "El usuario #{@user.name} no ha podido ser asignado al proyecto. Puede que ya pertenezca al él."
-		  redirect_to(:action => "edit_proj", :id => @user.id)
-		else  
-		  flash[:notice] = "El usuario #{@user.name} ha sido asignado al proyecto."
-		  redirect_to(:action => "edit_proj", :id => @user.id )
-		end
-	end
-
 	def modify_table_spendings
 		@user = User.find(session[:user_view])
 	  @current_date = params[:current_date]
@@ -247,60 +170,14 @@ class UsersController < ApplicationController
 	  
 	  render(:layout => false)
 	end
-  	
-  	
-	# Para visualizar la hoja de actividades de otros usuarios
-	def modify_view_tasks
-		
-		@user = session[:user_view]
-		
-		if (params[:current_date].nil? and session[:current_date].nil?)
-			session[:current_date] = Date.today
-		elsif !params[:current_date].nil?
-				session[:current_date] = params[:current_date]
-		end
 
-		@current_date = session[:current_date]
-  	
-		if ((params[:proj].nil?) and (session[:current_project_view_id] != '0'))
-  		@project = Project.find(session[:current_project_view_id])
-		elsif ((params[:proj] == '0') or ((params[:proj].nil?) and 
-												(session[:current_project_view_id] == '0')))
-  		@project = "Todos"
-  	  session[:current_project_view_id] = '0'
-  	  
-			@activities = Activity.get_activities_tasks(@user, @current_date)
-
-			@days = days_of_week(@current_date.to_date)
-
-			@validated = TasksValidated.find(:first, :conditions => {   :user_id => @user,
-															 		:week => @current_date.to_date.strftime("%W"),
-															 		:year => @current_date.to_date.year})
-  	      
-		else
-  		@project = Project.find(params[:proj])
-  	  session[:current_project_view_id] = @project.id
-		end
-		
-		if !params[:type_view].nil?
-			session[:t_view] = params[:type_view]
-		end
-		
-		@current_month = @current_date.to_date.mon - 1
-		@current_year = @current_date.to_date.year
-		@days = days_of_week(@current_date.to_date)
-			
-		render(:layout => false)		
-	end
-
-	
 	def modify_spending
 	  @user = User.find(params[:id])
 	  @date = params[:date].to_date
 	  @spending = Spending.new( :user_id => @user.id,
 	                            :date => @date)
 	end
-  	
+
 	# Crea un nuevo gasto o modifica uno existente
   def save_spending
 		@date = params[:spending][:date].to_date
@@ -328,7 +205,8 @@ class UsersController < ApplicationController
 			end
 		end
 	end
-	
+
+  # TODO El rol de cada usuario se asignará desde el perfil de cada usuario.
 	# Modificacion de los administradores y los jefes de proyectos
 	def mod_all
     role = Role.find(params[:id])
@@ -339,58 +217,6 @@ class UsersController < ApplicationController
 
     redirect_to :back
 	end
-
-  def permissions
-    @users = Role.find_by_name("admin").users
-    @users2 = User.find(:all).select {|u| !u.has_role?("admin")}
-  end
-
-  def permissions_jp
-    @users = Role.find_by_name("super_user").users
-    @users2 = User.find(:all).select {|u| !u.has_role2?("super_user")}
-  end
-	
-	# Eliminacion de una semana de tareas
-	def delete_tasks
-		for x in (0..4)
-			@task = Task.find(:first, :conditions => {:user_id => session[:user_id], 
-																								:activity_id => params[:id], 
-							  							  								:date => session[:current_date].to_date.monday + x})
-			if !@task.nil?
-				begin
-					@task.destroy
-				rescue Exception => e
-					flash[:error] = "Error. "+e.message
-				end
-			end
-		end
-		redirect_to(:action => "edit_tasks", :id1 => session[:current_date].to_date)						
-	end
-	
-
-	# Para eliminar varias lineas de tareas a la vez
-	def delete_all_tasks
-		if params[:tasks].nil?
-			flash[:error] = "No ha seleccionado ninguna linea."
-		else
-			for x in params[:tasks]
-				if !x.nil?
-					for y in (0..4)
-						@task = Task.find(:first, :conditions => {:user_id => session[:user_id], 
-																								:activity_id => x, 
-																  							:date => session[:current_date].to_date.monday + y})
-						begin
-							@task.destroy
-						rescue Exception => e
-							flash[:error] = "Error. "+e.message
-						end
-					end
-				end
-			end
-		end
-		redirect_to(:action => "edit_tasks", :id1 => session[:current_date])
-	end
-	
 
 	def delete_alert
 		@alert = Alert.find(params[:id])
@@ -414,18 +240,6 @@ class UsersController < ApplicationController
 	  redirect_to :back
 	end
 
-	# Eliminacion de los usuarios
-	def destroy
-		@user = User.find(params[:id])
-		begin
-	    	@user.destroy
-	    	flash[:notice] ="El usuario #{@user.name} ha sido eliminado"
-	    rescue Exception => e
-	    	flash[:error] = e.message
-		  end
-	    redirect_to(:controller => 'users', :action => 'list')
-	end
-	
   # Desvinculacion de un usuario de un proyecto
 	def delete_proj
 		@user = User.find(params[:id1])
@@ -447,11 +261,9 @@ class UsersController < ApplicationController
 																	 								:order => 'date ASC'
 	end
 	
-
 	def new_alert 
 		@alert = Alert.new
 	end
-	
 
 	def save_alert
 		@alert = Alert.new(params[:alert])
@@ -465,12 +277,10 @@ class UsersController < ApplicationController
    	redirect_to(:action => :view_alerts, :id => session[:user_id])	
 	end
 
-	
 	def modify_alert
 		@alert = Alert.find(params[:id_alert])		
 		render(:layout => false)
 	end
-	
 
 	def edit_alert
 		@alert = Alert.find(params[:id])
@@ -484,7 +294,6 @@ class UsersController < ApplicationController
 		end
 		redirect_to(:action => :view_alerts, :id => session[:user_id])
 	end
-	 
 	
 	# Creacion del pdf de la hoja de gastos
 	def pdf_spendings
@@ -671,19 +480,10 @@ class UsersController < ApplicationController
 
 private
   
-  
-	def redirect_to_index(msg = nil)
-		flash[:notice] = msg if msg
-    redirect_to :action => :edit_tasks
-  end
-  	
 	# Devuelve los proyectos en los que admin es jefe de proyecto y user está adscrito
 	def intersection_proj (admin, user)
-		
 		aux = admin.projects.collect{|x| x.id}
-
 		aux2 = user.user_projects.collect{|x| x.project_id}
-
 		aux & aux2
 	end
 
@@ -691,4 +491,16 @@ private
 		@freq_type = ["Una vez", "Diaria", "Semanal", "Mensual"]
 		@frequencies = [['Una vez', 0], ['Diaria', 1], ['Semanal', 2], ['Mensual', 3]]
 	end
+	
+protected
+	
+	def user_logged
+	  if !session[:user_id].nil?
+      @user_logged = User.find(session[:user_id])
+    end
+  end
+  
+  def find_user
+    @user = User.find(params[:id])
+  end
 end

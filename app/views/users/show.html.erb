@@ -3,7 +3,7 @@
 			<li class="selected"><%= link_to 'Usuarios', :controller => 'users', :action => 'list' %></li>
 			<li><%= link_to 'Proyectos', :controller => 'projects', :action => 'index' %></li>
 			<li><%= link_to 'Actividades', :controller => 'activities', :action => 'index' %></li>
-			<% if @user.has_role?('admin') %>
+			<% if @user_logged.has_role?('admin') %>
 				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
 			<% end %>
 	</ul>
@@ -11,38 +11,38 @@
 <%content_for (:action_nav) do %>
 	<ul>
 		<li class = "selected2">
-			<%= link_to 'Perfil', :controller => 'users', :action => 'show', :id => @current_user.id %>
+			<%= link_to 'Perfil', :controller => 'users', :action => 'show', :id => @user.id %>
 		</li>
-		<li><%= link_to 'Proyectos', :controller => 'users', :action => 'edit_proj', :id => @current_user.id %></li>
-		<li><%= link_to 'Hoja actividades', :controller => 'users', :action => 'view_tasks', :id => @current_user.id %></li>
-		<li><%= link_to 'Hoja gastos', :controller => 'users', :action => 'view_spendings', :id => @current_user.id %></li>
+		<li><%= link_to 'Proyectos', :controller => 'users', :action => 'edit_proj', :id => @user.id %></li>
+		<li><%= link_to 'Hoja actividades', :controller => 'users', :action => 'view_tasks', :id => @user.id %></li>
+		<li><%= link_to 'Hoja gastos', :controller => 'users', :action => 'view_spendings', :id => @user.id %></li>
 	</ul>
 <% end %>
 
 <div class="top">
-	<h3><%= @current_user.name %></h3>
+	<h3><%= @user.name %></h3>
 </div>
 <div class="course-form">
 	<table class="form_setting">
 		<tr>
 			<th>
 				<label>Nombre</label>
-			</th> 
+			</th>
 			<td>
-				<%= @current_user.long_name %>
+				<%= @user.long_name %>
 			</td> 
 		</tr>
 		<tr>
 			<th>
 				<label>E-mail corporativo</label>
 			<td>
-				<%= @current_user.email %>
+				<%= @user.email %>
 			</td>
 		</tr>
 	</table>
-	<% if @user.has_role?('admin') %>
+	<% if @user_logged.has_role?('admin') %>
 		<p class="btns btns2">
-			<%= link_to 'Editar', :controller => 'users', :action => 'edit', :id => @current_user.id %>
+			<%= link_to 'Editar', :controller => 'users', :action => 'edit', :id => @user.id %>
 		</p>
 	<% end %>
 </div>
