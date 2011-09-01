@@ -2,8 +2,6 @@ class TasksController < ApplicationController
 
   before_filter :user_logged
 
-  require_role "super_user", :for_all_except => [:index, :show, :edit]
-
   require 'related_select_form_helper'	#crear select anidados.
 
   def index
@@ -12,7 +10,6 @@ class TasksController < ApplicationController
 		# Array para almacenar las semanas no validadas
 		@tasks_not_validated = TasksValidated.all_not_validated(@user_logged)
 	end
-
 
   def show
     # Proyectos a los que esta adscrito el usuario
@@ -23,23 +20,17 @@ class TasksController < ApplicationController
       redirect_to root_path and return false
     end
 
-		if params[:current_date]
-      @current_date = params[:current_date].to_date
-    else
-      @current_date = Date.civil(params[:year].to_i, params[:month].to_i, params[:day].to_i)
-    end
-
-		# Dias (numero) de la semana
-		@days = days_of_week(@current_date.to_date)
-		#@project = Project.find(session[:current_project_id])
-		#session[:current_activity_id] = @project.activities.first.id
+		@current_date = Date.civil(params[:year].to_i, params[:month].to_i, params[:day].to_i)
+    
+		# Dias (número) de la semana
+		@days = days_of_week(@current_date)
 
 		# Actividades de la semana con tareas
 		@activities = Activity.this_week_with_tasks(@user_logged, @current_date)
 
 		# Vemos si la semana está validada
 		@validated = TasksValidated.find(:first, :conditions => {:user_id => @user_logged.id,
-													:week => @current_date.cweek,
+													                                   :week => @current_date.cweek,
 													:year => @current_date.year})
   end
 
@@ -71,18 +62,20 @@ class TasksController < ApplicationController
 
   end
 
-  def info
-    @current_date = params[:current_date].to_date
+  def table_tasks
+    @current_date = params[:current_date].to_date.monday
     @days = days_of_week(@current_date.to_date)
     @activities = Activity.get_activities_tasks(@user_logged, @current_date)
     @validated = TasksValidated.find(:first, :conditions => {:user_id => @user_logged,
                                        :week => @current_date.strftime("%W"),
                                        :year => @current_date.year})
-    render(:layout => false)
+    
+    #redirect_to(:action => "show", :day => @current_date.day, :month => @current_date.month, :year => @current_date.year)
+    render :partial => 'table_tasks', :locals => {:user => @user_logged.id}
   end
 
   # Añade una nueva tarea
- 	def create_tasks
+ 	def create
   	current_date = params[:current_date].to_date
 
     for y in (0..4)
@@ -135,9 +128,33 @@ class TasksController < ApplicationController
     redirect_to(:action => "show", :day => params[:day], :month => params[:month], :year => params[:year])
   end
 
+  # Para eliminar varias lineas de tareas a la vez
+	def delete_all_tasks
+		if params[:tasks].nil?
+			flash[:error] = "No ha seleccionado ninguna linea."
+		else
+		  date = params[:date].to_date.monday
+			for x in params[:tasks]
+				if !x.nil?
+					for y in (0..4)
+						@task = Task.find(:first, :conditions => {:user_id => @user_logged.id, 
+																								      :activity_id => x, 
+																  							      :date => date + y})
+						begin
+							@task.destroy
+						rescue Exception => e
+							flash[:error] = "Error. "+e.message
+							redirect_to(:action => "show", :day => date.day, :month => date.month, :year => date.year)
+						end
+					end
+				end
+			end
+		end
+		redirect_to(:action => "show", :day => date.day, :month => date.month, :year => date.year)
+	end
+
   # Validacion de una semana de actividades
 	def validate
-
     current_date = Date.civil(params[:year].to_i, params[:month].to_i, params[:day].to_i)
 
 		@validated = TasksValidated.find(:first, :conditions => {:user_id => @user_logged.id,
@@ -169,137 +186,131 @@ class TasksController < ApplicationController
 
   # Creación del pdf de la semana seleccionada
   def pdf
-
     current_date = Date.civil(params[:year].to_i, params[:month].to_i, params[:day].to_i)
-
     create_pdf(@user_logged, current_date)
-
 	end
 
   private
-  def user_logged
-    @user_logged = User.find(session[:user_id])
-  end
+  
+    def create_pdf(user, date)
 
-  def create_pdf(user, date)
-
-    @all_tasks = Array.new
-    @activities_aux = Array.new
-    for x in (0..4)
-      @unit_tasks = Task.find(:all, :conditions => {:date => date.monday + x, :user_id => user.id})
-      for y in (0..@unit_tasks.length - 1)
-        @activities_aux << @unit_tasks[y].activity_id
+      @all_tasks = Array.new
+      @activities_aux = Array.new
+      for x in (0..4)
+        @unit_tasks = Task.find(:all, :conditions => {:date => date.monday + x, :user_id => user.id})
+        for y in (0..@unit_tasks.length - 1)
+          @activities_aux << @unit_tasks[y].activity_id
+        end
       end
-    end
-    @activities = @activities_aux.uniq
+      @activities = @activities_aux.uniq
 
-    @validated = TasksValidated.find(:first, :conditions => {:user_id => user.id,
-                                 :week => date.strftime("%W"),
-                                 :year => date.year})
+      @validated = TasksValidated.find(:first, :conditions => {:user_id => user.id,
+                                       :week => date.strftime("%W"),
+                                       :year => date.year})
 
-    pdf = PDF::Writer.new(	:paper => "A4",
-                          :orientation => :landscape)
-    pdf.margins_pt(5)
-    pdf.image("public/images/agaex400.jpg", {:resize => 0.5, :pad => 0})
+      pdf = PDF::Writer.new(:paper => "A4",
+                            :orientation => :landscape)
+      pdf.margins_pt(5)
+      pdf.image("public/images/agaex400.jpg", {:resize => 0.5, :pad => 0})
 
-    PDF::SimpleTable.new do |tab|
-      tab.column_order = ["col1", "col2", "col3"]
+      PDF::SimpleTable.new do |tab|
+        tab.column_order = ["col1", "col2", "col3"]
         tab.title = "<b>HOJA DE ACTIVIDAD SEMANAL</b>"
         tab.title_font_size = 20
         tab.font_size = 14
 
         tab.columns["col1"] = PDF::SimpleTable::Column.new("col1"){ |col|
           col.width = 350
-            col.justification = :center
+          col.justification = :center
         }
         tab.columns["col2"] = PDF::SimpleTable::Column.new("col2"){ |col|
-            col.width = 150
-            col.justification = :center
+          col.width = 150
+          col.justification = :center
         }
         tab.columns["col3"] = PDF::SimpleTable::Column.new("col4"){ |col|
-            col.width = 150
-            col.justification = :center
+          col.width = 150
+          col.justification = :center
         }
-      tab.show_lines = :all
+        tab.show_lines = :all
         tab.show_headings = false
         tab.orientation = :center
-          tab.position = :center
-          tab.shade_color = Color::RGB::Grey90
-         data = []
-        data << { 	"col1" => "Colaborador: " + user.long_name,
-                  "col2" => "Inicio: "+ date.monday.strftime("%d/%m/%y"),
-                    "col3" => "Fin: "+ (date + 4).strftime("%d/%m/%y")}
+        tab.position = :center
+        tab.shade_color = Color::RGB::Grey90
+        data = []
+        data << {"col1" => "Colaborador: " + user.long_name,
+                 "col2" => "Inicio: "+ date.monday.strftime("%d/%m/%y"),
+                 "col3" => "Fin: "+ (date + 4).strftime("%d/%m/%y")}
         tab.data.replace data
         tab.render_on(pdf)
-    end
+      end
 
-    pdf.text("\n")
+      pdf.text("\n")
 
-    PDF::SimpleTable.new do |tab|
-      tab.column_order = ["col1", "col2","col3","col4","col5","col6","col7","col8","col9"]
-      tab.bold_headings = true
+      PDF::SimpleTable.new do |tab|
+        tab.column_order = ["col1", "col2","col3","col4","col5","col6","col7","col8","col9"]
+        tab.bold_headings = true
 
-          tab.columns["col1"] = PDF::SimpleTable::Column.new("col1"){ |col|
-            col.justification = :center
-            col.heading = "Proyecto"
-            col.heading.justification = :center
-            col.width = 90
-          }
-      tab.columns["col2"] = PDF::SimpleTable::Column.new("col2"){ |col|
-            col.justification = :center
-            col.heading = "Actividad"
-            col.heading.justification = :center
-            col.width = 90
-          }
-          tab.columns["col3"] = PDF::SimpleTable::Column.new("col3"){ |col|
-            col.justification = :left
-            col.heading = "Descripcion de la Actividad"
-            col.heading.justification = :center
-            col.width = 190
-          }
-          tab.columns["col4"] = PDF::SimpleTable::Column.new("col4"){ |col|
-            col.justification = :center
-            col.heading = "Lun"
-            col.heading.justification = :center
-            col.width = 40
-          }
-          tab.columns["col5"] = PDF::SimpleTable::Column.new("col5"){ |col|
-            col.justification = :center
-            col.heading = "Mar"
-            col.heading.justification = :center
-            col.width = 40
-          }
-          tab.columns["col6"] = PDF::SimpleTable::Column.new("col6"){ |col|
-            col.justification = :center
-            col.heading = "Mie"
-            col.heading.justification = :center
-            col.width = 40
-          }
-          tab.columns["col7"] = PDF::SimpleTable::Column.new("col7"){ |col|
-            col.justification = :center
-            col.heading = "Jue"
-            col.heading.justification = :center
-            col.width = 40
-          }
-          tab.columns["col8"] = PDF::SimpleTable::Column.new("col8"){ |col|
-            col.justification = :center
-            col.heading = "Vie"
-            col.heading.justification = :center
-            col.width = 40
-          }
-          tab.columns["col9"] = PDF::SimpleTable::Column.new("col9"){ |col|
-            col.justification = :center
-            col.heading = "Total"
-            col.heading.justification = :center
-            col.width = 40
-          }
+        tab.columns["col1"] = PDF::SimpleTable::Column.new("col1"){ |col|
+          col.justification = :center
+          col.heading = "Proyecto"
+          col.heading.justification = :center
+          col.width = 90
+        }
+        tab.columns["col2"] = PDF::SimpleTable::Column.new("col2"){ |col|
+          col.justification = :center
+          col.heading = "Actividad"
+          col.heading.justification = :center
+          col.width = 90
+        }
+        tab.columns["col3"] = PDF::SimpleTable::Column.new("col3"){ |col|
+          col.justification = :left
+          col.heading = "Descripcion de la Actividad"
+          col.heading.justification = :center
+          col.width = 190
+        }
+        tab.columns["col4"] = PDF::SimpleTable::Column.new("col4"){ |col|
+          col.justification = :center
+          col.heading = "Lun"
+          col.heading.justification = :center
+          col.width = 40
+        }
+        tab.columns["col5"] = PDF::SimpleTable::Column.new("col5"){ |col|
+          col.justification = :center
+          col.heading = "Mar"
+          col.heading.justification = :center
+          col.width = 40
+        }
+        tab.columns["col6"] = PDF::SimpleTable::Column.new("col6"){ |col|
+          col.justification = :center
+          col.heading = "Mie"
+          col.heading.justification = :center
+          col.width = 40
+        }
+        tab.columns["col7"] = PDF::SimpleTable::Column.new("col7"){ |col|
+          col.justification = :center
+          col.heading = "Jue"
+          col.heading.justification = :center
+          col.width = 40
+        }
+        tab.columns["col8"] = PDF::SimpleTable::Column.new("col8"){ |col|
+          col.justification = :center
+          col.heading = "Vie"
+          col.heading.justification = :center
+          col.width = 40
+        }
+        tab.columns["col9"] = PDF::SimpleTable::Column.new("col9"){ |col|
+          col.justification = :center
+          col.heading = "Total"
+          col.heading.justification = :center
+          col.width = 40
+        }
 
         tab.show_lines = :all
         tab.show_headings = true
         tab.orientation = :center
         tab.position = :center
         tab.shade_rows = :none
-         tab.shade_headings = true
+        tab.shade_headings = true
 
         data = []
         @totals = [0,0,0,0,0]
@@ -312,25 +323,25 @@ class TasksController < ApplicationController
             @task = Task.find(:first, :conditions => {:user_id => user.id,
                     :activity_id => @unit_activity.id,
                     :date =>  date.monday + z})
-          if !@task.nil?
-            @week[z] = @task.hours
-            @totals[z] += @task.hours
-          end
-          if !@week[z].nil?
-            @total_w += @week[z]
-          end
+            if !@task.nil?
+              @week[z] = @task.hours
+              @totals[z] += @task.hours
+            end
+            if !@week[z].nil?
+              @total_w += @week[z]
+            end
           end
 
-          data << {  	"col1" => @project,
-                "col2" => @unit_activity.name,
-                "col3" => truncate(@unit_activity.description, 40, "..."),
-                "col4" => @week[0],
-                "col5" => @week[1],
-                "col6" => @week[2],
-                "col7" => @week[3],
-                "col8" => @week[4],
-                "col9" => @total_w
-              }
+          data << { "col1" => @project,
+                    "col2" => @unit_activity.name,
+                    "col3" => truncate(@unit_activity.description, 40, "..."),
+                    "col4" => @week[0],
+                    "col5" => @week[1],
+                    "col6" => @week[2],
+                    "col7" => @week[3],
+                    "col8" => @week[4],
+                    "col9" => @total_w
+                  }
         end
 
         @lines = @activities.length
@@ -352,25 +363,25 @@ class TasksController < ApplicationController
 
         @totals.each {|t| @total_m.nil? ? @total_m = t : @total_m += t}
 
-        data << { 	"col1" => "",
-              "col2" => "",
-              "col3" => "<b>TOTAL: </b>",
-              "col4" => "<b>#{@totals[0]}</b>",
-              "col5" => "<b>#{@totals[1]}</b>",
-              "col6" => "<b>#{@totals[2]}</b>",
-              "col7" => "<b>#{@totals[3]}</b>",
-              "col8" => "<b>#{@totals[4]}</b>",
-              "col9" => "<b>#{@total_m}</b>"
-            }
+        data << { "col1" => "",
+                  "col2" => "",
+                  "col3" => "<b>TOTAL: </b>",
+                  "col4" => "<b>#{@totals[0]}</b>",
+                  "col5" => "<b>#{@totals[1]}</b>",
+                  "col6" => "<b>#{@totals[2]}</b>",
+                  "col7" => "<b>#{@totals[3]}</b>",
+                  "col8" => "<b>#{@totals[4]}</b>",
+                  "col9" => "<b>#{@total_m}</b>"
+                }
 
         tab.data.replace data
         tab.render_on(pdf)
 
-    end
+      end
 
-    pdf.text("\n")
+      pdf.text("\n")
 
-    PDF::SimpleTable.new do |tab|
+      PDF::SimpleTable.new do |tab|
         tab.column_order = ["col1"]
         tab.columns["col1"] = PDF::SimpleTable::Column.new("col1"){ |col|
           col.justification = :left
@@ -386,10 +397,15 @@ class TasksController < ApplicationController
 
         tab.data.replace data
         tab.render_on(pdf)
+      end
+
+      send_data pdf.render, :filename => "#{user.name}_#{date.monday.strftime("%d/%m/%y")}.pdf", :type => "application/pdf"
+
     end
 
-    send_data pdf.render, :filename => "#{user.name}_#{date.monday.strftime("%d/%m/%y")}.pdf", :type => "application/pdf"
-
-  end
-
+  protected
+  
+    def user_logged
+      @user_logged = User.find(session[:user_id])
+    end
 end

@@ -1,10 +1,6 @@
-<p class="form_month">
-    <%= @current_date.strftime("%B").capitalize%>, <%= @current_date.year%>
-</p>
-
 <div id="hide_form" class="mod_all mod_ter">
 
-    <% form_tag({:action => "create_tasks"}, :id => 'task') do %>
+    <% form_tag({:action => "create"}, :id => 'task') do %>
         <% if @validated.nil? or @validated.validated == 0 %>
             <table class="table_week">
                 <tr class="table_title">

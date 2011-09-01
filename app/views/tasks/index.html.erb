@@ -9,11 +9,11 @@
 		<ul>
 		<% for x in @tasks_not_validated %>
 			<li>
-				<%= link_to x.strftime("%d de %B de %Y"), {:controller => :tasks,
-                                                           :action => :show,
-                                                           :day => x.day,
-                                                           :month => x.month,
-                                                           :year => x.year} %>
+				<%= link_to (I18n.localize x, :format => "%d de %B de %Y"), {:controller => :tasks,
+                                                           					 :action => :show,
+                                                           					 :day => x.day,
+                                                           					 :month => x.month,
+                                                           					 :year => x.year} %>
 			</li>													
 		<% end %>
 		</ul>

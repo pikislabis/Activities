@@ -1,8 +1,0 @@
-<div id="table_tasks">
-  	<p class="form_month">
-	    <%= @current_date.to_date.strftime("%B").capitalize %>, <%= @current_date.to_date.year %>
-	</p>
-	<% form_tag(:action => "delete_all_tasks") do %>
-	    <%= render :partial => 'table_tasks', :locals => {:user => @user_logged.id} %>
-    <% end %>
-</div>

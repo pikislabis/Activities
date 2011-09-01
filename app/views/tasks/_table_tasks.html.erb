@@ -1,13 +1,17 @@
+<p class="form_month">
+	<%= (I18n.localize @current_date, :format => "%B").capitalize %>, <%= @current_date.year %>
+</p>
+
 <table class="table_week">
 	<tr class="table_title">
 		<td></td>
 		<td>Proyecto</td>
 		<td>Actividad</td>
-		<td>Lunes <%= @days[0].day %></td>
-		<td>Martes <%= @days[1].day %></td>
-		<td>Miercoles <%= @days[2].day %></td>
-		<td>Jueves <%= @days[3].day %></td>
-		<td>Viernes <%= @days[4].day %></td>
+		<td><%= (I18n.localize @days[0], :format => "%A").capitalize %> <%= @days[0].day %></td>
+		<td><%= (I18n.localize @days[1], :format => "%A").capitalize %> <%= @days[1].day %></td>
+		<td><%= (I18n.localize @days[2], :format => "%A").capitalize %> <%= @days[2].day %></td>
+		<td><%= (I18n.localize @days[3], :format => "%A").capitalize %> <%= @days[3].day %></td>
+		<td><%= (I18n.localize @days[4], :format => "%A").capitalize %> <%= @days[4].day %></td>
 	</tr>
 	<% if @activities.blank? %>
 	<tr>
@@ -47,7 +51,7 @@
 						%>
 					</td>
 					<td>
-                        <%= link_to image_tag('/images/delete.gif'), {:controller => :tasks,
+                        <%= link_to image_tag('/images/no_entry.png'), {:controller => :tasks,
                                                             :day => @current_date.day,
                                                             :month => @current_date.month,
                                                             :year => @current_date.year,
@@ -62,13 +66,12 @@
 		<% end %>
 			<tr class="total">
 				<% if (@validated.nil? or @validated.validated == 0) and @user_logged.id == user %>
-					<td class="arrow">
-						<%= image_tag ('/images/arrow.png')%>
-					</td>
-					<td class="delete">
-						<%= image_submit_tag '/images/delete.gif', 
+					<td>
+						<%= hidden_field_tag 'date', @current_date %>
+						<%= image_submit_tag '/images/no_entry_2.png', 
 								:onclick => "return confirm('Esta seguro de querer eliminar las tareas?')"%>
 					</td>
+					<td></td>
 				<% else %>
 					<td></td>
 					<td></td>														
@@ -83,16 +86,12 @@
 			</tr>
 	<% end %>
 </table>
-<% if (@validated.nil? or @validated.validated == 0) and (controller.action_name == "show") %>
+<% if (@validated.nil? or @validated.validated == 0) %>
 	<p class="hide_view center">
 		<%= link_to "Validar", {:day => @current_date.day,
                                 :month => @current_date.month,
                                 :year => @current_date.year,
                                 :action => :validate}, :confirm => "¿Está seguro de querer validar esta semana?" %>
-	</p>
-<% elsif (@validated.nil? or @validated.validated == 0) %>
-	<p class= "hide_view center2">
-		La semana aún no está validada.
 	</p>
 <% elsif  !@validated.nil? and @validated.validated != 0 %>
 	<div id="image_link">

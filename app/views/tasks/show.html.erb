@@ -1,10 +1,3 @@
-<% content_for (:activity_nav) do %>
-	<ul>
-			<li class="selected">
-              <%= link_to 'Modificar', :action => 'index'%>
-            </li>
-	</ul>
-<% end %>
 <h3>Modifique o introduzca nuevos datos</h3>
 <div id="act-form">
 	<table class="form-act">
@@ -14,7 +7,7 @@
 				<%= calendar_date_select_tag :current_date, @current_date,
 											{:year_range => 2.years.ago..5.years.from_now, :size => 10,
 											 :onchange => "new Ajax.Updater('table_tasks',
-											 '/tasks/info', {parameters: {current_date: this.calendar_date_select.selected_date}});"}
+											 '/tasks/table_tasks', {parameters: {current_date: this.calendar_date_select.selected_date}});"}
 				%>
 			</td>
 		</tr>
@@ -39,10 +32,7 @@
   		</tr>
     </table>
     <div id="table_tasks">
-  	  <p class="form_month">
-		<%= @current_date.to_date.strftime("%B").capitalize %>, <%= @current_date.to_date.year %>
-	  </p>
-	  <% form_tag(:action => :delete_all_tasks) do %>
+  	  <% form_tag(:action => :delete_all_tasks) do %>
 		<%= render :partial => 'table_tasks', :locals => {:user => @user_logged.id} %>
 	  <% end %>
 	</div>
