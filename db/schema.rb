@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110830191042) do
+ActiveRecord::Schema.define(:version => 20110901153810) do
 
   create_table "activities", :force => true do |t|
     t.string   "name"
@@ -84,11 +84,12 @@ ActiveRecord::Schema.define(:version => 20110830191042) do
 
   create_table "roles", :force => true do |t|
     t.string "name"
+    t.string "long_name"
   end
 
   create_table "roles_users", :id => false, :force => true do |t|
-    t.integer "role_id"
-    t.integer "user_id"
+    t.integer "role_id", :default => 1, :null => false
+    t.integer "user_id", :default => 1, :null => false
   end
 
   add_index "roles_users", ["role_id"], :name => "index_roles_users_on_role_id"

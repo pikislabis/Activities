@@ -1,8 +1,8 @@
 namespace :activities do
   desc "Tareas iniciales."
   task :iniciar => :environment do
-    rol_admin = Role.create(:name => 'admin')
-    rol_super_user = Role.create(:name => 'super_user')
+    rol_admin = Role.create(:name => 'admin', :long_name => 'Administrador')
+    rol_super_user = Role.create(:name => 'super_user', :long_name => 'Jefe de Proyecto')
     rol_admin.save and rol_super_user.save
 
     user = User.create(	:long_name => 'Administrador',

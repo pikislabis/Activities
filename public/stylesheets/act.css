@@ -398,7 +398,8 @@ select {
 	background:#E7E7E7 none repeat scroll 0 0;
 	padding: 6px;
 	text-align:center;
-	position: static;	display: block;
+	position: static;
+	display: block;
 }
 
 .btns2{
@@ -543,7 +544,6 @@ select {
 
 .form_setting{
 	margin:0 20px 0;
-	width:100%;
 }
 
 .form_setting th{
@@ -869,14 +869,6 @@ p.njp2 {
 
 .date_label{
 	color: #3388BB;
-}
-
-.delete{
-	text-align: left;
-}
-
-.arrow img{
-	margin-left:17px;
 }
 
 .records{
