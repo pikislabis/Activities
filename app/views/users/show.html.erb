@@ -1,21 +1,8 @@
 <% content_for (:activity_nav) do %>
 	<ul>
-			<li class="selected"><%= link_to 'Usuarios', :controller => 'users', :action => 'list' %></li>
-			<li><%= link_to 'Proyectos', :controller => 'projects', :action => 'index' %></li>
-			<li><%= link_to 'Actividades', :controller => 'activities', :action => 'index' %></li>
-			<% if @user_logged.has_role?('admin') %>
-				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
-			<% end %>
-	</ul>
-<% end %>
-<%content_for (:action_nav) do %>
-	<ul>
-		<li class = "selected2">
-			<%= link_to 'Perfil', :controller => 'users', :action => 'show', :id => @user.id %>
-		</li>
-		<li><%= link_to 'Proyectos', :controller => 'users', :action => 'edit_proj', :id => @user.id %></li>
-		<li><%= link_to 'Hoja actividades', :controller => 'users', :action => 'view_tasks', :id => @user.id %></li>
-		<li><%= link_to 'Hoja gastos', :controller => 'users', :action => 'view_spendings', :id => @user.id %></li>
+			<li class="selected"><%= link_to 'Usuarios', users_path %></li>
+			<li><%= link_to 'Proyectos', projects_path %></li>
+			<li><%= link_to 'Actividades', activities_path %></li>
 	</ul>
 <% end %>
 
@@ -34,15 +21,10 @@
 		</tr>
 		<tr>
 			<th>
-				<label>E-mail corporativo</label>
+				<label>E-mail</label>
 			<td>
 				<%= @user.email %>
 			</td>
 		</tr>
 	</table>
-	<% if @user_logged.has_role?('admin') %>
-		<p class="btns btns2">
-			<%= link_to 'Editar', :controller => 'users', :action => 'edit', :id => @user.id %>
-		</p>
-	<% end %>
 </div>

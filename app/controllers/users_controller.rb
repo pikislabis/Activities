@@ -12,11 +12,17 @@ class UsersController < ApplicationController
 
 	protect_from_forgery :only => [:update, :delete, :create]
 
-  # TODO Configurar el filtro :user_logged
+  def index
+    if params[:search].blank?
+      @users = @user_logged.mates
+    else
+      @users = @user_logged.mates & User.long_name_like(params[:search])
+    end
+    @users = @users.paginate(:page => params[:page], :per_page => 6)
+  end
 
-	# Muestra las semanas pendientes de validacion que tiene el usuario
 	def show
-  	if !@user_logged.belong_to_own_project(@user)
+  	if !@user_logged.mates.include? @user
 			flash[:error] = "No tiene permisos para esta accion."
 			redirect_to :action => :index
 		end
@@ -206,19 +212,7 @@ class UsersController < ApplicationController
 		end
 	end
 
-  # TODO El rol de cada usuario se asignará desde el perfil de cada usuario.
-	# Modificacion de los administradores y los jefes de proyectos
-	def mod_all
-    role = Role.find(params[:id])
-    user = User.find(params[:role][:user_id])
-    user.roles << role
-
-    flash[:notice] = "La modificacion ha sido realizada correctamente."
-
-    redirect_to :back
-	end
-
-	def delete_alert
+  def delete_alert
 		@alert = Alert.find(params[:id])
 		if @alert.user_id == session[:user_id]
 			begin
@@ -230,29 +224,6 @@ class UsersController < ApplicationController
 			flash[:error] = "Error. No puede borrar esta alerta."
 		end
 		redirect_to(:controller => 'users', :action => 'view_alerts', :id => session[:user_id])
-	end
-
-	# Eliminacion de los roles de los usuarios
-	def delete_role
-    user = User.find(params[:id])
-    user.roles.delete(Role.find(params[:id2]))
-
-	  redirect_to :back
-	end
-
-  # Desvinculacion de un usuario de un proyecto
-	def delete_proj
-		@user = User.find(params[:id1])
-		@project = Project.find(params[:id2])
-		@user_proj = UserProject.find(:first, :conditions => {:project_id => params[:id2],
-																													:user_id => params[:id1]})
-		begin
-			@user_proj.destroy
-			flash[:notice] = "El usuario #{@user.id} ha sido desvinculado del proyecto #{@project.id}"
-		rescue Exception => e
-			flash[:error] = e.message
-		end
-		redirect_to(:action => :edit_proj, :id => @user.id)	
 	end
 
 	def view_alerts

@@ -8,15 +8,16 @@ class ProjectsController < ApplicationController
 	
 	def show
 		@project = Project.find(params[:id])
-    if !@user_logged.projects.include? @project
+    if !@user_logged.projects.include? @project and !@user_logged.has_role?('admin')
       flash[:error] = 'No tiene privilegios para ver el proyecto.'
       redirect_to root_path
     end
   end
 
-  private
-  def user_logged
-    @user_logged = User.find(session[:user_id])
-  end
+  protected
+  
+    def user_logged
+      @user_logged = User.find(session[:user_id])
+    end
 
 end

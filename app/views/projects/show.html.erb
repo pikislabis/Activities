@@ -1,14 +1,3 @@
-<% content_for (:activity_nav) do %>
-	<ul>
-			<li><%= link_to 'Usuarios', :controller => 'users', :action => 'list' %></li>
-			<li class="selected"><%= link_to 'Proyectos', :controller => 'projects', :action => 'index' %></li>
-			<li><%= link_to 'Actividades', :controller => 'activities', :action => 'index' %></li>
-			<% if User.find(session[:user_id]).has_role?('admin') %>
-				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
-			<% end %>
-	</ul>
-<% end %>
-
 <div class="top">
 	<h3><%= @project.name %></h3>
 </div>
@@ -17,7 +6,7 @@
 	<table class="form_setting">
 		<tr>
 			<th>
-				<label>Descripcion</label>
+				<label>Descripción</label>
 			</th>
 			<td>
 				<%= @project.description %>
@@ -40,7 +29,7 @@
 					<ul>
 						<% for acti in @project.activities %>
 						<li>
-								<%= link_to acti.name, :controller => 'activities', :action => 'show', :id => acti.id %>
+								<%= link_to acti.name, activity_path(acti) %>
 								<span class="act_desc">
 									<%= truncate(acti.description, 60)%>
 								</span>

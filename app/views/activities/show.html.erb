@@ -1,14 +1,3 @@
-<% content_for (:activity_nav) do %>
-	<ul>
-			<li><%= link_to 'Usuarios', :controller => 'users', :action => 'list' %></li>
-			<li><%= link_to 'Proyectos', :controller => 'projects', :action => 'index' %></li>
-			<li class='selected'><%= link_to 'Actividades', :controller => 'activities', :action => 'index' %></li>
-			<% if User.find(session[:user_id]).has_role?('admin') %>
-				<li><%= link_to 'Permisos', :controller => 'users', :action => 'permissions' %></li>
-			<% end %>
-	</ul>
-<% end %>
-
 <div class="top">
 	<h3><%= @activity.name %></h3>
 </div>
@@ -25,7 +14,7 @@
 		</tr>
 		<tr>
 			<th>
-				<label>Descripcion</label>
+				<label>Descripción</label>
 			<td>
 				<%= @activity.description %>
 			</td>
@@ -35,7 +24,7 @@
 				<label>Proyecto</label>
 			</th>
 			<td>
-				<%= Project.find(@activity.project_id).name %>
+				<%= link_to @activity.project.name, project_path(@activity.project) %>
 			</td>
 		</tr>
 	</table>
